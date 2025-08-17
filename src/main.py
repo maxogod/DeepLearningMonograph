@@ -92,6 +92,7 @@ def train_model(model: nn.Module, train_loader: DataLoader, val_loader: DataLoad
         print(f"[Time: {time_end-time_start}] Epoch {epoch+1}/{num_epochs} | "
               f"Train Loss: {train_loss:.4f}, Train Dice: {train_dice:.4f} | "
               f"Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
+        torch.save(model.state_dict(), f"unet3d_brats_amp_chp{epoch}.pth")
 
     # Save model
     torch.save(model.state_dict(), "unet3d_brats_amp.pth")
@@ -112,4 +113,4 @@ if __name__ == "__main__":
 
     model = UNet3DCheckpoint(in_channels=3, num_classes=4).to(device)
     print("Model instantiated and will start training")
-    train_model(model, train_loader, val_loader, num_epochs=10, lr=1e-4)
+    train_model(model, train_loader, val_loader, num_epochs=90, lr=1e-4)

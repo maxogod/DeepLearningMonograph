@@ -1,5 +1,6 @@
-import torch
 from typing import cast
+
+import torch
 import torch.nn as nn
 import torch.utils.checkpoint as cp
 
@@ -10,18 +11,18 @@ class UNet3DCheckpoint(nn.Module):
 
         # Encoder
         self.enc0 = self._conv_block(in_channels, base_ch)
-        self.enc1 = self._conv_block(base_ch, base_ch*2)
-        self.enc2 = self._conv_block(base_ch*2, base_ch*4)
-        self.enc3 = self._conv_block(base_ch*4, base_ch*8)
-        self.enc4 = self._conv_block(base_ch*8, base_ch*16)
+        self.enc1 = self._conv_block(base_ch, base_ch * 2)
+        self.enc2 = self._conv_block(base_ch * 2, base_ch * 4)
+        self.enc3 = self._conv_block(base_ch * 4, base_ch * 8)
+        self.enc4 = self._conv_block(base_ch * 8, base_ch * 16)
 
         # Decoder
-        self.up1 = self._up_block(base_ch*16, base_ch*8)
-        self.up2 = self._up_block(base_ch*8*2, base_ch*4)
-        self.up3 = self._up_block(base_ch*4*2, base_ch*2)
-        self.up4 = self._up_block(base_ch*2*2, base_ch)
+        self.up1 = self._up_block(base_ch * 16, base_ch * 8)
+        self.up2 = self._up_block(base_ch * 8 * 2, base_ch * 4)
+        self.up3 = self._up_block(base_ch * 4 * 2, base_ch * 2)
+        self.up4 = self._up_block(base_ch * 2 * 2, base_ch)
 
-        self.final = nn.Conv3d(base_ch*2, num_classes, kernel_size=1)
+        self.final = nn.Conv3d(base_ch * 2, num_classes, kernel_size=1)
 
     def _conv_block(self, in_ch, out_ch):
         return nn.Sequential(
@@ -41,16 +42,39 @@ class UNet3DCheckpoint(nn.Module):
         )
 
     def forward(self, x):
-        e0 = cast(torch.Tensor, cp.checkpoint(
-            self.enc0, x, use_reentrant=False))
-        e1 = cast(torch.Tensor, cp.checkpoint(
-            lambda t: self.enc1(nn.functional.max_pool3d(t, 2)), e0, use_reentrant=False))
-        e2 = cast(torch.Tensor, cp.checkpoint(
-            lambda t: self.enc2(nn.functional.max_pool3d(t, 2)), e1, use_reentrant=False))
-        e3 = cast(torch.Tensor, cp.checkpoint(
-            lambda t: self.enc3(nn.functional.max_pool3d(t, 2)), e2, use_reentrant=False))
-        e4 = cast(torch.Tensor, cp.checkpoint(
-            lambda t: self.enc4(nn.functional.max_pool3d(t, 2)), e3, use_reentrant=False))
+        e0 = cast(torch.Tensor, cp.checkpoint(self.enc0, x, use_reentrant=False))
+        e1 = cast(
+            torch.Tensor,
+            cp.checkpoint(
+                lambda t: self.enc1(nn.functional.max_pool3d(t, 2)),
+                e0,
+                use_reentrant=False,
+            ),
+        )
+        e2 = cast(
+            torch.Tensor,
+            cp.checkpoint(
+                lambda t: self.enc2(nn.functional.max_pool3d(t, 2)),
+                e1,
+                use_reentrant=False,
+            ),
+        )
+        e3 = cast(
+            torch.Tensor,
+            cp.checkpoint(
+                lambda t: self.enc3(nn.functional.max_pool3d(t, 2)),
+                e2,
+                use_reentrant=False,
+            ),
+        )
+        e4 = cast(
+            torch.Tensor,
+            cp.checkpoint(
+                lambda t: self.enc4(nn.functional.max_pool3d(t, 2)),
+                e3,
+                use_reentrant=False,
+            ),
+        )
 
         d1 = self.up1(e4)
         d1 = torch.cat([d1, e3], dim=1)

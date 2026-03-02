@@ -1,9 +1,11 @@
+import glob
+import random
+
 import numpy as np
 import tqdm
 from torch.utils.data import Dataset
+
 import src.utils.consts as consts
-import glob
-import random
 
 VOLUMES_IDX = 0
 MASKS_IDX = 1
@@ -18,16 +20,17 @@ class LazyBratsDataset(Dataset):
 
         self.data = {}
         self.chunk_start = 0
-        self.chunk_end = lazy_chunk_size if lazy_chunk_size > len(
-            self.files[MASKS_IDX]) else len(self.files[MASKS_IDX])
+        self.chunk_end = (
+            lazy_chunk_size
+            if lazy_chunk_size > len(self.files[MASKS_IDX])
+            else len(self.files[MASKS_IDX])
+        )
 
         self._load_chunk()
 
     def _get_file_paths(self):
-        volumes = sorted(glob.glob(self.data_path +
-                         consts.VOLUMES_PATH + "/*.npy"))
-        masks = sorted(glob.glob(self.data_path +
-                       consts.MASKS_PATH + "/*.npy"))
+        volumes = sorted(glob.glob(self.data_path + consts.VOLUMES_PATH + "/*.npy"))
+        masks = sorted(glob.glob(self.data_path + consts.MASKS_PATH + "/*.npy"))
 
         files = (volumes, masks)
         indices = [i for i in range(len(volumes))]
@@ -45,8 +48,7 @@ class LazyBratsDataset(Dataset):
     def __getitem__(self, idx):
         if idx not in self.data:
             if idx >= len(self):
-                raise ValueError(
-                    f"index {idx} not valid for length {len(self)}")
+                raise ValueError(f"index {idx} not valid for length {len(self)}")
             self._move_chunk(idx)
             self._load_chunk()
         return self.data[idx]

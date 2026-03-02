@@ -1,9 +1,11 @@
-from enum import Enum
 import os
+from enum import Enum
+
 
 class Environment(Enum):
     DEVELOPMENT = "development"
     PRODUCTION = "production"
+
 
 class Config:
     def __init__(self):

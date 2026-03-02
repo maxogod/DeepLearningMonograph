@@ -1,4 +1,3 @@
-
 # Data paths
 TRAINING_DATA_PATH = "../data/raw/brats_nii/training/"
 PREPROC_DATA_PATH = "../data/preprocessed/brats_nii/"

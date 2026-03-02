@@ -1,18 +1,22 @@
-import torch
 import time
-from torch.utils.data import DataLoader
+from typing import Tuple
+
+import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.amp.autocast_mode import autocast
 from torch.amp.grad_scaler import GradScaler
-from typing import Tuple
+from torch.utils.data import DataLoader
+
 from src.architecture.unet_3d_checkpoint import UNet3DCheckpoint
 from src.dataset.lazy_loader import LazyBratsDataset
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def dice_score_multiclass(pred: torch.Tensor, target: torch.Tensor, epsilon=1e-6) -> torch.Tensor:
+def dice_score_multiclass(
+    pred: torch.Tensor, target: torch.Tensor, epsilon=1e-6
+) -> torch.Tensor:
     """
     pred: (B, C, D, H, W)
     target: (B, C, D, H, W) one-hot
@@ -21,13 +25,16 @@ def dice_score_multiclass(pred: torch.Tensor, target: torch.Tensor, epsilon=1e-6
     target = target.float()
     intersection = (pred * target).sum(dim=(2, 3, 4))
     union = pred.sum(dim=(2, 3, 4)) + target.sum(dim=(2, 3, 4))
-    dice = (2. * intersection + epsilon) / (union + epsilon)
+    dice = (2.0 * intersection + epsilon) / (union + epsilon)
     return dice.mean()
+
 
 # Training function
 
 
-def train_epoch(model: nn.Module, loader: DataLoader, optimizer, criterion, scaler: GradScaler) -> Tuple[float, float]:
+def train_epoch(
+    model: nn.Module, loader: DataLoader, optimizer, criterion, scaler: GradScaler
+) -> Tuple[float, float]:
     model.train()
     epoch_loss, epoch_dice = 0.0, 0.0
 
@@ -51,10 +58,13 @@ def train_epoch(model: nn.Module, loader: DataLoader, optimizer, criterion, scal
 
     return epoch_loss / len(loader), epoch_dice / len(loader)
 
+
 # Validation function
 
 
-def validate_epoch(model: nn.Module, loader: DataLoader, criterion) -> Tuple[float, float]:
+def validate_epoch(
+    model: nn.Module, loader: DataLoader, criterion
+) -> Tuple[float, float]:
     model.eval()
     val_loss, val_dice = 0.0, 0.0
     with torch.no_grad():
@@ -72,12 +82,17 @@ def validate_epoch(model: nn.Module, loader: DataLoader, criterion) -> Tuple[flo
             val_dice += dice_score_multiclass(outputs, masks).item()
     return val_loss / len(loader), val_dice / len(loader)
 
+
 # Main training loop
 
 
-def train_model(model: nn.Module, train_loader: DataLoader, val_loader: DataLoader,
-                num_epochs: int = 10, lr: float = 1e-4):
-
+def train_model(
+    model: nn.Module,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    num_epochs: int = 10,
+    lr: float = 1e-4,
+):
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scaler = GradScaler(device="cuda")
@@ -85,13 +100,16 @@ def train_model(model: nn.Module, train_loader: DataLoader, val_loader: DataLoad
     for epoch in range(num_epochs):
         time_start = time.time()
         train_loss, train_dice = train_epoch(
-            model, train_loader, optimizer, criterion, scaler)
+            model, train_loader, optimizer, criterion, scaler
+        )
         val_loss, val_dice = validate_epoch(model, val_loader, criterion)
         time_end = time.time()
 
-        print(f"[Time: {time_end-time_start}] Epoch {epoch+1}/{num_epochs} | "
-              f"Train Loss: {train_loss:.4f}, Train Dice: {train_dice:.4f} | "
-              f"Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
+        print(
+            f"[Time: {time_end-time_start}] Epoch {epoch+1}/{num_epochs} | "
+            f"Train Loss: {train_loss:.4f}, Train Dice: {train_dice:.4f} | "
+            f"Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}"
+        )
         torch.save(model.state_dict(), f"unet3d_brats_amp_chp{epoch}.pth")
 
     # Save model
@@ -102,9 +120,11 @@ if __name__ == "__main__":
     print("Running")
 
     train_dataset = LazyBratsDataset(
-        "./data/preprocessed/split_brats_nii/train", lazy_chunk_size=30)
+        "./data/preprocessed/split_brats_nii/train", lazy_chunk_size=30
+    )
     val_dataset = LazyBratsDataset(
-        "./data/preprocessed/split_brats_nii/val", lazy_chunk_size=20)
+        "./data/preprocessed/split_brats_nii/val", lazy_chunk_size=20
+    )
     print("Datasets created")
 
     train_loader = DataLoader(train_dataset, batch_size=2)

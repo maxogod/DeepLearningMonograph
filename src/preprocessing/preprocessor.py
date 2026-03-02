@@ -1,8 +1,10 @@
-from glob import glob
 import logging
-from src.utils.consts import T1CE_SUFFIX, T2_SUFFIX, FLAIR_SUFFIX, SEG_SUFFIX
+from glob import glob
+
+from src.utils.consts import FLAIR_SUFFIX, SEG_SUFFIX, T1CE_SUFFIX, T2_SUFFIX
 
 logger = logging.getLogger(__name__)
+
 
 class Preprocessor:
     def __init__(self, data_path: str) -> None:
@@ -10,4 +12,6 @@ class Preprocessor:
         self.t2_files = sorted(glob(data_path + "*/*" + T2_SUFFIX))
         self.flair_files = sorted(glob(data_path + "*/*" + FLAIR_SUFFIX))
         self.seg_files = sorted(glob(data_path + "*/*" + SEG_SUFFIX))
-        logger.debug(f"Found {len(self.t1ce_files)} T1CE files, {len(self.t2_files)} T2 files, {len(self.flair_files)} FLAIR files, and {len(self.seg_files)} SEG files.")
+        logger.debug(
+            f"Found {len(self.t1ce_files)} T1CE files, {len(self.t2_files)} T2 files, {len(self.flair_files)} FLAIR files, and {len(self.seg_files)} SEG files."
+        )

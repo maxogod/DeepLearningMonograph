@@ -1,14 +1,13 @@
 import logging
 import logging.config
+
 from src.config.config import Environment
 
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "standard": {
-            "format": "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-        },
+        "standard": {"format": "%(asctime)s | %(levelname)s | %(name)s | %(message)s"},
     },
     "handlers": {
         "console": {

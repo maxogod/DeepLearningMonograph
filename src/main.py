@@ -1,6 +1,7 @@
-from src.config.config import Config
-import src.utils.logger as logger
 import sys
+
+import src.utils.logger as logger
+from src.config.config import Config
 from src.preprocessing.preprocessor import Preprocessor
 
 if __name__ == "__main__":

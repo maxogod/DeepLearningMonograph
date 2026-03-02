@@ -1,12 +1,20 @@
-# DeepLearningMonograph
+# Brain Tumor Segmentation Models & Analysis
+
+Application of deep learning techniques and models to the semantic segmentation of tumors in brain tissue
+based on RMI 3D volumes.
 
 ## How to setup environment
 
-```powershell
-# Install miniconda
-(base) $ conda env create -f ./environment.yaml
-(base) $ conda activate brats
-(brats) $ 
+- First install [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)
+- Then create the environment with its dependencies as follows
+
+```bash
+# Create the environment
+conda env create -f ./environment.yaml
+conda activate brats
+
+# Update after changing environment.yaml
+conda env update --name brats --file environment.yml --prune
 ```
 
 ## Datasets

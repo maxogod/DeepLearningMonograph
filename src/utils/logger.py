@@ -1,6 +1,5 @@
 import logging
 import logging.config
-
 from src.config.config import Environment
 
 LOGGING_CONFIG = {
@@ -30,3 +29,7 @@ def setup_logging(env: Environment):
     config["root"]["level"] = level
 
     logging.config.dictConfig(config)
+
+
+def get_logger() -> logging.Logger:
+    return logging.getLogger(__name__)

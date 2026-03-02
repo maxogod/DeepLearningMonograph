@@ -1,9 +1,9 @@
-import logging
 from glob import glob
-
 from src.utils.consts import FLAIR_SUFFIX, SEG_SUFFIX, T1CE_SUFFIX, T2_SUFFIX
+from src.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger()
 
 
 class Preprocessor:

@@ -13,3 +13,11 @@ def mkdir(path: str):
 def load_nii(file_path: str) -> np.ndarray:
     nii_image: Nifti1Image = cast(Nifti1Image, load(file_path))
     return nii_image.get_fdata()
+
+
+def save_npy(file_path: str, data: np.ndarray):
+    np.save(file_path, data)
+
+
+def load_npy(file_path: str) -> np.ndarray:
+    return np.load(file_path)

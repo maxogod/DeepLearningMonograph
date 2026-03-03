@@ -55,7 +55,7 @@ class Preprocessor:
                 .astype(np.uint8)
             )
 
-            np.save(f"{save_path}/{count}{VOLUME_SUFFIX}", volume)
+            file_operations.save_npy(f"{save_path}/{count}{VOLUME_SUFFIX}", volume)
             count += 1
 
     def scale_volume(self, volume: np.ndarray) -> np.ndarray:

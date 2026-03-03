@@ -1,4 +1,5 @@
 from glob import glob
+from os import path
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import torch
@@ -6,6 +7,8 @@ import torch.nn.functional as F
 from src.utils import file_operations
 from src.utils.consts import (
     FLAIR_SUFFIX,
+    PREPROC_TEST,
+    PREPROC_TRAIN,
     SEG_NPY_SUFFIX,
     SEG_SUFFIX,
     T1CE_SUFFIX,
@@ -19,7 +22,9 @@ logger = get_logger()
 
 
 class Preprocessor:
-    def __init__(self, data_path: str, save_path: str) -> None:
+    def __init__(
+        self, data_path: str, save_path: str, split_ratio: float = 0.0
+    ) -> None:
         self.t1ce_files = sorted(glob(data_path + "*/*" + T1CE_SUFFIX))
         self.t2_files = sorted(glob(data_path + "*/*" + T2_SUFFIX))
         self.flair_files = sorted(glob(data_path + "*/*" + FLAIR_SUFFIX))
@@ -29,12 +34,17 @@ class Preprocessor:
         )
 
         self.save_path = save_path
-        file_operations.mkdir(save_path)
+        file_operations.mkdir(path.join(save_path, PREPROC_TRAIN))
+        file_operations.mkdir(path.join(save_path, PREPROC_TEST))
+
+        self.split_ratio = split_ratio
 
         self.scaler = MinMaxScaler(feature_range=(0, 1))
 
-    def preprocess(self):
+    def preprocess(self, amount: int | None = None) -> None:
         count = 0
+        train_count = 0
+
         for t1ce_file, t2_file, flair_file, seg_file in zip(
             self.t1ce_files, self.t2_files, self.flair_files, self.seg_files
         ):
@@ -47,14 +57,16 @@ class Preprocessor:
             volume, seg_img = result
 
             # Save preprocessed data
-            file_operations.save_npy(
-                f"{self.save_path}/{count}{VOLUME_NPY_SUFFIX}", volume
-            )
-            file_operations.save_npy(
-                f"{self.save_path}/{count}{SEG_NPY_SUFFIX}", seg_img
-            )
+            saved_train = self._save_train_test(volume, seg_img, count)
+
+            if saved_train:
+                train_count += 1
             count += 1
-        logger.debug(f"Preprocessed {count} volumes and segmentation masks.")
+            if amount is not None and count >= amount:
+                break
+        logger.debug(
+            f"Preprocessed: {count} imgs & train/test ratio: {train_count}/{count-train_count}."
+        )
 
     def _process_nii(
         self, t1ce_file: str, t2_file: str, flair_file: str, seg_file: str
@@ -75,12 +87,10 @@ class Preprocessor:
             return None
 
         seg_img = (
-            F.one_hot(
-                torch.from_numpy(seg_img).long(), num_classes=4
-            )  # one-hot requires long tensor
+            F.one_hot(torch.from_numpy(seg_img).long(), num_classes=4)
             .numpy()
             .astype(np.uint8)
-        )
+        )  # one-hot requires long tensor
 
         # Process and image volumes
         t1ce_img = self._scale_volume(file_operations.load_nii(t1ce_file)).astype(
@@ -92,6 +102,7 @@ class Preprocessor:
         flair_img = self._scale_volume(file_operations.load_nii(flair_file)).astype(
             np.float32
         )
+
         volume = np.stack([t1ce_img, t2_img, flair_img], axis=3)
         volume = volume[56:184, 56:184, 13:141]  # Crop to 128x128x128
 
@@ -103,3 +114,29 @@ class Preprocessor:
             volume.reshape(-1, original_shape[-1])
         ).reshape(original_shape)
         return scaled_volume
+
+    def _save_train_test(self, volume: np.ndarray, seg: np.ndarray, index: int) -> bool:
+        folder = PREPROC_TRAIN
+        if self.split_ratio != 0.0 and np.random.rand() >= self.split_ratio:
+            folder = PREPROC_TEST
+
+        save_path = path.join(self.save_path, folder)
+        file_operations.save_npy(f"{save_path}/{index}{VOLUME_NPY_SUFFIX}", volume)
+        file_operations.save_npy(f"{save_path}/{index}{SEG_NPY_SUFFIX}", seg)
+
+        return folder == PREPROC_TRAIN  # Whether it was assigned to train or test
+
+
+if __name__ == "__main__":
+    from src.utils.logger import setup_logging
+    from src.config.config import Environment
+
+    setup_logging(Environment.DEVELOPMENT)
+
+    preprocessor = Preprocessor("data/raw/training/", "data/tmp/")
+    preprocessor.preprocess(amount=1)
+
+    vol = file_operations.load_npy("./data/tmp/train/0_volume.npy")
+    seg = file_operations.load_npy("./data/tmp/train/0_seg.npy")
+
+    print(f"Volume shape: {vol.shape}, Segmentation shape: {seg.shape}")

@@ -1,10 +1,6 @@
 # Data paths
-TRAINING_DATA_PATH = "../data/raw/brats_nii/training/"
-PREPROC_DATA_PATH = "../data/preprocessed/brats_nii/"
-SPLIT_PREPROC_DATA_PATH = "../data/preprocessed/split_brats_nii/"
-
-VOLUMES_PATH = "/volumes"
-MASKS_PATH = "/masks"
+PREPROC_TRAIN = "train/"
+PREPROC_TEST = "test/"
 
 # Image sequence suffixes
 T1CE_SUFFIX = "_t1ce.nii"
@@ -14,6 +10,3 @@ SEG_SUFFIX = "_seg.nii"
 
 VOLUME_NPY_SUFFIX = "_volume.npy"
 SEG_NPY_SUFFIX = "_seg.npy"
-
-# Random
-RAND_SEED = 18

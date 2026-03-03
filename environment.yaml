@@ -32,3 +32,4 @@ dependencies:
       - pandas==2.3.3
       - tqdm==4.67.1
       - split-folders
+      - torchinfo

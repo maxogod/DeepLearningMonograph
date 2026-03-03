@@ -87,3 +87,21 @@ class UNet3DCheckpoint(nn.Module):
 
         out = self.final(d4)
         return torch.sigmoid(out)
+
+
+if __name__ == "__main__":
+    from torchinfo import summary
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = UNet3DCheckpoint(in_channels=3, num_classes=4).to(device)
+
+    x = torch.randn(1, 3, 128, 128, 128).to(device)
+    output = model(x)
+
+    # loss = criterion(output, y)
+
+    print("Input shape :", x.shape)
+    print("Output shape:", output.shape)
+
+    summary(model, input_size=(1, 3, 128, 128, 128))

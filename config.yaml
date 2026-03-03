@@ -1,0 +1,22 @@
+environment: "development"
+random_seed: 42
+
+preprocessing_config:
+  preprocess: true
+  split_ratio: 0.8
+
+train_config:
+  train: false
+  batch_size: 2
+  save_model: false
+  model_name: "model.pt"
+
+validation_config:
+  model_name: "model.pt"
+  evaluate: false
+  predict: false
+
+file_paths:
+  raw_data: "data/raw/training/"
+  preproc_data: "data/preproc/" # /train and /test
+  model_save_path: "models/"

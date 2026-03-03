@@ -1,5 +1,4 @@
 import sys
-
 import src.utils.logger as logger
 from src.config.config import Config
 from src.preprocessing.preprocessor import Preprocessor
@@ -14,5 +13,5 @@ if __name__ == "__main__":
 
     data_path = sys.argv[1]
     save_path = sys.argv[2]
-    preprocessor = Preprocessor(data_path)
-    preprocessor.preprocess(save_path)
+    preprocessor = Preprocessor(data_path, save_path)
+    preprocessor.preprocess()

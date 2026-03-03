@@ -41,7 +41,13 @@ python -m src.main
     - 2: ED (edema)
     - 4: ET (enhancing tumor)
 
-- Dataset: [[Brats 2020 with .nii (42.8GB)]](https://www.kaggle.com/datasets/awsaf49/brats20-dataset-training-validation)
+### Dataset
+
+- Visit: [[Brats 2020 with .nii (42.8GB)]](https://www.kaggle.com/datasets/awsaf49/brats20-dataset-training-validation)
+
+The dataset contains 369 cases of the described problem above.
+
+<small>Entry number 355 has a bad file name! rename accordingly</small>
 
 ## Proposed solution
 

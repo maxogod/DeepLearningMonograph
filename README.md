@@ -14,7 +14,7 @@ conda env create -f ./environment.yaml
 conda activate brats
 
 # Update after changing environment.yaml
-conda env update --name brats --file environment.yml --prune
+conda env update --name brats --file environment.yaml --prune
 ```
 
 ## How to run

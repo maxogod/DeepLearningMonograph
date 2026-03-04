@@ -8,11 +8,12 @@ preprocessing_config:
 train_config:
   train: false
   batch_size: 2
+  num_epochs: 100
   save_model: false
-  model_name: "model.pt"
+  model_name: "model.pth"
 
 validation_config:
-  model_name: "model.pt"
+  model_name: "model.pth"
   evaluate: false
   predict: false
 

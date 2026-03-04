@@ -36,7 +36,7 @@ def train(config: Config):
     trainer = Trainer(
         config, model, criterion, 1e-4, train=train_loader, test=test_loader
     )
-    trainer.fit(num_epochs=100)
+    trainer.fit(num_epochs=config.train_config.num_epochs)
 
 
 def predict(config: Config, rmi_folder: str):

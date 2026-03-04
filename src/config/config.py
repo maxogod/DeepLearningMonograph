@@ -20,6 +20,7 @@ class PreprocessingConfig:
 class TrainConfig:
     train: bool
     batch_size: int
+    num_epochs: int
     save_model: bool
     model_name: str
 

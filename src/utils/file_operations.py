@@ -1,10 +1,12 @@
 import os
-from typing import Any, Dict, cast
+from typing import Any, Dict, Tuple, cast
 from nibabel.loadsave import load
 from nibabel.nifti1 import Nifti1Image
 import numpy as np
 import torch
 
+MODEL_STATE_DICT = "model_state_dict"
+OPTIMIZER_STATE_DICT = "optimizer_state_dict"
 
 # --- Misc ---
 
@@ -36,9 +38,10 @@ def load_npy(file_path: str) -> np.ndarray:
 # --- Model Checkpoints ---
 
 
-def save_torch(file_path: str, state_dict: Dict[str, Any]) -> None:
-    torch.save(state_dict, file_path)
+def save_torch(file_path: str, model: Dict, optimizer: Dict) -> None:
+    torch.save({MODEL_STATE_DICT: model, OPTIMIZER_STATE_DICT: optimizer}, file_path)
 
 
-def load_torch(file_path: str) -> Dict[str, Any]:
-    return torch.load(file_path)
+def load_torch(file_path: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    saved_dict = torch.load(file_path)
+    return saved_dict[MODEL_STATE_DICT], saved_dict[OPTIMIZER_STATE_DICT]

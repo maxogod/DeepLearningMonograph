@@ -66,3 +66,15 @@ class Config:
         )
 
         self.file_paths = FilePaths(**config_dict.get("file_paths", {}))
+
+    def __str__(self) -> str:
+        return (
+            f"Config(\n"
+            f"  environment={self.environment.value},\n"
+            f"  random_seed={self.random_seed},\n"
+            f"  preprocessing_config={self.preprocessing_config},\n"
+            f"  train_config={self.train_config},\n"
+            f"  validation_config={self.validation_config},\n"
+            f"  file_paths={self.file_paths}\n"
+            f")"
+        )

@@ -1,4 +1,5 @@
 from os import path
+from tqdm import tqdm
 import time
 from torch import amp, nn, optim
 import torch
@@ -7,6 +8,7 @@ from torch.utils.data import DataLoader
 from src.config.config import Config
 from src.utils import file_operations
 from src.utils.logger import get_logger
+
 
 logger = get_logger()
 
@@ -21,32 +23,39 @@ class Trainer:
         train: DataLoader,
         test: DataLoader | None = None,
     ):
-        self.config = config
-        file_operations.mkdir(self.config.file_paths.model_save_path)
-        self.save_path = path.join(
-            self.config.file_paths.model_save_path, self.config.train_config.model_name
-        )
-        self.best_save_path = path.join(
-            self.config.file_paths.model_save_path,
-            "best_",
-            self.config.train_config.model_name,
-        )
+        self.save_model = config.train_config.save_model
+        if config.train_config.save_model:
+            file_operations.mkdir(config.file_paths.model_save_path)
+            self.save_path = path.join(
+                config.file_paths.model_save_path, config.train_config.model_name
+            )
+            self.best_save_path = path.join(
+                config.file_paths.model_save_path,
+                f"best_{config.train_config.model_name}",
+            )
 
         self.model = model
         self.criterion = criterion
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
-        self.scaler = amp.GradScaler("cuda")  # type: ignore
 
         self.train_loader = train
         self.test_loader = test
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device_type = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device(self.device_type)
+        self.scaler = amp.GradScaler(self.device_type)  # type: ignore
 
     def fit(self, num_epochs: int):
+        logger.info(
+            f"Starting training for {num_epochs} epochs on device: {self.device_type}"
+        )
         best_loss = float("inf")
 
+        epoch_bar = tqdm(range(num_epochs), desc="Training Epochs", unit="epoch")
+
         self.model.to(self.device)
-        for epoch in range(num_epochs):
+        self.criterion.to(self.device)
+        for _ in epoch_bar:
             time_start = time.time()
 
             loss = self._fit_epoch()
@@ -54,14 +63,15 @@ class Trainer:
 
             time_end = time.time()
 
-            logger.debug(
-                f"Epoch {epoch+1}/{num_epochs} - "
-                f"Train Loss: {loss:.4f} - "
-                f"Val Loss: {val_loss:.4f} - "
-                f"Time: {time_end - time_start:.2f}s"
+            epoch_bar.set_postfix(
+                {
+                    "train_loss": f"{loss:.4f}",
+                    "val_loss": f"{(val_loss or 0.0):.4f}",
+                    "time": f"{time_end - time_start:.2f}s",
+                }
             )
 
-            if val_loss < best_loss:
+            if val_loss is not None and val_loss < best_loss and self.save_model:
                 best_loss = val_loss
                 file_operations.save_torch(
                     self.best_save_path,
@@ -69,35 +79,41 @@ class Trainer:
                     self.optimizer.state_dict(),
                 )
 
-        file_operations.save_torch(
-            self.save_path, self.model.state_dict(), self.optimizer.state_dict()
-        )
+        if self.save_model:
+            file_operations.save_torch(
+                self.save_path, self.model.state_dict(), self.optimizer.state_dict()
+            )
 
     def _fit_epoch(self) -> float:
         self.model.train()
 
+        epoch_bar = tqdm(self.train_loader, desc="Batches", leave=False)
+
         train_loss = 0.0
-        for imgs, masks in self.train_loader:
+        for imgs, masks in epoch_bar:
             imgs = imgs.to(self.device).float()
             masks = masks.to(self.device).float()
 
-            self.optimizer.zero_grad()
+            self.optimizer.zero_grad(set_to_none=True)
 
-            with autocast(device_type="cuda"):
+            with autocast(device_type=self.device_type):
                 outputs = self.model(imgs)
                 loss = self.criterion(outputs, masks)
 
             self.scaler.scale(loss).backward()
+            prev_scale = self.scaler.get_scale()
             self.scaler.step(self.optimizer)
             self.scaler.update()
+            if self.scaler.get_scale() < prev_scale:  # Detect overflow
+                logger.warning("Gradient overflow detected. Skipping step.")
 
             train_loss += loss.item()
 
         return train_loss / len(self.train_loader)
 
-    def _validate_epoch(self) -> float:
+    def _validate_epoch(self) -> float | None:
         if self.test_loader is None:
-            return 0.0
+            return None
 
         self.model.eval()
 
@@ -107,7 +123,7 @@ class Trainer:
                 imgs = imgs.to(self.device).float()
                 masks = masks.to(self.device).float()
 
-                with autocast(device_type="cuda"):
+                with autocast(device_type=self.device_type):
                     outputs = self.model(imgs)
                     loss = self.criterion(outputs, masks)
 

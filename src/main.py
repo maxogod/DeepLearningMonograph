@@ -1,6 +1,6 @@
 from os import path
 import sys
-
+import torch
 from torch.utils.data import DataLoader
 from src.utils.consts import PREPROC_TEST, PREPROC_TRAIN
 import src.utils.logger as logger
@@ -51,6 +51,9 @@ def main():
         preprocess(config)
 
     if config.train_config.train:
+        print("CUDA available:", torch.cuda.is_available())
+        print("torch.version.cuda:", torch.version.cuda)
+        print("compiled archs:", torch.cuda.get_arch_list())
         train(config)
 
     if config.validation_config.evaluate:

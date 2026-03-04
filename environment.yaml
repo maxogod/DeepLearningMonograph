@@ -33,3 +33,4 @@ dependencies:
       - tqdm==4.67.1
       - split-folders
       - torchinfo
+      - segmentation-models-3D

@@ -12,7 +12,7 @@ class WeightedDiceFocalLoss(torch.nn.Module):
 
         self.loss = DiceFocalLoss(
             include_background=True,
-            to_onehot_y=True,
+            to_onehot_y=False,
             softmax=True,
             weight=self.class_weights,
         )

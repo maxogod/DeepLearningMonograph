@@ -27,8 +27,18 @@ def train(config: Config):
     )
     test_dataset = BraTSDataset(path.join(config.file_paths.preproc_data, PREPROC_TEST))
 
-    train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=4)
-    test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=config.train_config.batch_size,
+        shuffle=True,
+        num_workers=4,
+    )
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=config.train_config.batch_size,
+        shuffle=False,
+        num_workers=4,
+    )
 
     model = UNet3D(in_channels=3, num_classes=4)
     criterion = WeightedDiceFocalLoss()

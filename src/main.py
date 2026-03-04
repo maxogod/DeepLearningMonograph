@@ -7,7 +7,7 @@ import src.utils.logger as logger
 from src.config.config import Config
 from src.preprocessing.preprocessor import Preprocessor
 from src.models.unet_3d import UNet3D
-from src.training.loss_functions import DiceFocalLoss
+from src.training.loss_functions import WeightedDiceFocalLoss
 from src.training.train import Trainer
 from src.dataset.brats_dataset import BraTSDataset
 
@@ -31,7 +31,7 @@ def train(config: Config):
     test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
 
     model = UNet3D(in_channels=3, num_classes=4)
-    criterion = DiceFocalLoss()
+    criterion = WeightedDiceFocalLoss()
 
     trainer = Trainer(
         config, model, criterion, 1e-4, train=train_loader, test=test_loader
@@ -46,6 +46,7 @@ def predict(config: Config, rmi_folder: str):
 def main():
     config = Config()
     logger.setup_logging(config.environment)
+    torch.manual_seed(config.random_seed)
 
     if config.preprocessing_config.preprocess:
         preprocess(config)

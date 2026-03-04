@@ -139,4 +139,19 @@ if __name__ == "__main__":
     vol = file_operations.load_npy("./data/tmp/train/0_volume.npy")
     seg = file_operations.load_npy("./data/tmp/train/0_seg.npy")
 
+    vol_min = vol.min()
+    vol_max = vol.max()
+    if vol_min == 0.0 and vol_max == 1.0:
+        print("Volume is correctly min-max scaled from 0 to 1.")
+    else:
+        print(f"Volume min: {vol_min}, max: {vol_max} - not scaled correctly.")
+
+    seg_sum = seg.sum(axis=-1)
+    if np.all(seg_sum == 1) and np.all((seg == 0) | (seg == 1)):
+        print("Segmentation is correctly one-hot encoded.")
+    else:
+        print("Segmentation is not one-hot encoded.")
+        print(f"Sum check: all sums ==1? {np.all(seg_sum == 1)}")
+        print(f"Binary check: all 0 or 1? {np.all((seg == 0) | (seg == 1))}")
+
     print(f"Volume shape: {vol.shape}, Segmentation shape: {seg.shape}")

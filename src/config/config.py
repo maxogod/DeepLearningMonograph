@@ -27,7 +27,7 @@ class TrainConfig:
 
 @dataclass
 class ValidationConfig:
-    model_name: str
+    model_path: str
     evaluate: bool
     predict: bool
 

@@ -1,5 +1,7 @@
 from typing import Tuple
 import torch
+import torch.nn.functional as F
+from tqdm import tqdm
 from torch import nn
 from torch.utils.data import DataLoader
 from monai.metrics.meandice import DiceMetric
@@ -15,34 +17,36 @@ class Evaluator:
         self.model = model
         self.test_loader = test
 
-        self.iou_metric = MeanIoU(include_background=True, reduction="mean")
+        self.iou_metric = MeanIoU(
+            include_background=True, reduction="mean", get_not_nans=False
+        )
         self.dice_metric = DiceMetric(include_background=True, reduction="mean")
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
     def validate_model(self) -> Tuple[float, float]:
-        self.model.eval()
         self.iou_metric.reset()
         self.dice_metric.reset()
 
         with torch.no_grad():
-            for imgs, masks in self.test_loader:
-                imgs = imgs.to(self.device).float()
+            for imgs, masks in tqdm(self.test_loader):
+                imgs = imgs.to(self.device)
                 masks = masks.to(self.device)
 
                 outputs = self.model(imgs)
-                probs = torch.softmax(outputs, dim=1)
-                preds = torch.argmax(probs, dim=1, keepdim=True)
-                targets = torch.argmax(masks, dim=1, keepdim=True)
+                preds = torch.argmax(torch.softmax(outputs, dim=1), dim=1)
+                targets = torch.argmax(masks, dim=1)
 
-                self.iou_metric(preds, targets)
+                preds = F.one_hot(preds, num_classes=4).permute(0, 4, 1, 2, 3).float()
+                targets = (
+                    F.one_hot(targets, num_classes=4).permute(0, 4, 1, 2, 3).float()
+                )
+
                 self.dice_metric(preds, targets)
+                self.iou_metric(preds, targets)
 
-        mean_iou, _ = self.iou_metric.aggregate()
-        mean_dice, _ = self.dice_metric.aggregate()
-
-        mean_iou = mean_iou.item()
-        mean_dice = mean_dice.item()
+        mean_iou = self.iou_metric.aggregate().item()  # type: ignore
+        mean_dice = self.dice_metric.aggregate().item()  # type: ignore
 
         return mean_iou, mean_dice

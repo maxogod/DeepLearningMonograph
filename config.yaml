@@ -14,8 +14,8 @@ train_config:
 
 validation_config:
   model_path: "trained_models/best_model_2.pth"
-  evaluate: true
-  predict: false
+  evaluate: false
+  predict: true
 
 file_paths:
   raw_data: "data/raw/training/"

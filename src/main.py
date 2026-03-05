@@ -49,6 +49,10 @@ def train(config: Config):
     trainer.fit(num_epochs=config.train_config.num_epochs)
 
 
+def evaluate(config: Config):
+    pass
+
+
 def predict(config: Config, rmi_folder: str):
     pass
 
@@ -63,7 +67,7 @@ def main():
 
     if config.train_config.train:
         print("CUDA available:", torch.cuda.is_available())
-        print("torch.version.cuda:", torch.version.cuda)
+        print("torch.version.cuda:", torch.version.cuda)  # type: ignore
         print("compiled archs:", torch.cuda.get_arch_list())
         train(config)
 

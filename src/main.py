@@ -46,13 +46,13 @@ def train(config: Config):
         train_dataset,
         batch_size=config.train_config.batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=config.loader_workers,
     )
     test_loader = DataLoader(
         test_dataset,
         batch_size=config.train_config.batch_size,
         shuffle=False,
-        num_workers=4,
+        num_workers=config.loader_workers,
     )
 
     model = UNet3D(in_channels=3, num_classes=4)
@@ -78,7 +78,7 @@ def evaluate(config: Config) -> tuple[float, float]:
         test_dataset,
         batch_size=config.train_config.batch_size,
         shuffle=False,
-        num_workers=4,
+        num_workers=config.loader_workers,
     )
 
     model_state_dict, _ = file_operations.load_torch(

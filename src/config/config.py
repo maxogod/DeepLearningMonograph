@@ -19,8 +19,11 @@ class PreprocessingConfig:
 @dataclass
 class TrainConfig:
     train: bool
+    resume_training: bool
+    resume_from: str
     batch_size: int
     num_epochs: int
+    learning_rate: float
     save_model: bool
     model_name: str
 

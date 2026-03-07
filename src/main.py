@@ -3,6 +3,7 @@ from os import path
 import sys
 import numpy as np
 import torch
+from torch import optim
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import DataLoader
@@ -55,10 +56,18 @@ def train(config: Config):
     )
 
     model = UNet3D(in_channels=3, num_classes=4)
+    optimizer = optim.Adam(model.parameters(), lr=config.train_config.learning_rate)
     criterion = WeightedDiceFocalLoss()
 
+    if config.train_config.resume_training:
+        model_state, optimizer_state = file_operations.load_torch(
+            config.train_config.resume_from
+        )
+        model.load_state_dict(model_state)
+        optimizer.load_state_dict(optimizer_state)
+
     trainer = Trainer(
-        config, model, criterion, 1e-4, train=train_loader, test=test_loader
+        config, model, optimizer, criterion, train=train_loader, test=test_loader
     )
     trainer.fit(num_epochs=config.train_config.num_epochs)
 

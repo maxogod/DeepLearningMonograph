@@ -6,16 +6,19 @@ preprocessing_config:
   split_ratio: 0.8
 
 train_config:
-  train: false
-  batch_size: 2
-  num_epochs: 100
+  train: true
+  resume_training: true
+  resume_from: "trained_models/best_model_2.pth"
+  batch_size: 8
+  num_epochs: 50
+  learning_rate: 0.0001
   save_model: true
   model_name: "model.pth"
 
 validation_config:
   model_path: "trained_models/best_model_2.pth"
   evaluate: false
-  predict: true
+  predict: false
 
 file_paths:
   raw_data: "data/raw/training/"

@@ -18,10 +18,11 @@ class Trainer:
         self,
         config: Config,
         model: nn.Module,
+        optimizer: optim.Optimizer,
         criterion: nn.Module,
-        lr: float,
         train: DataLoader,
         test: DataLoader | None = None,
+        start_epoch: int = 0,
     ):
         self.save_model = config.train_config.save_model
         if config.train_config.save_model:
@@ -36,8 +37,9 @@ class Trainer:
 
         self.model = model
         self.criterion = criterion
-        self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
+        self.optimizer = optimizer
 
+        self.start_epoch = start_epoch
         self.train_loader = train
         self.test_loader = test
 
@@ -51,11 +53,13 @@ class Trainer:
         )
         best_loss = float("inf")
 
-        epoch_bar = tqdm(range(num_epochs), desc="Training Epochs", unit="epoch")
+        epoch_bar = tqdm(
+            range(self.start_epoch, num_epochs), desc="Training Epochs", unit="epoch"
+        )
 
         self.model.to(self.device)
         self.criterion.to(self.device)
-        for _ in epoch_bar:
+        for current_epoch in epoch_bar:
             time_start = time.time()
 
             loss = self._fit_epoch()
@@ -73,16 +77,10 @@ class Trainer:
 
             if val_loss is not None and val_loss < best_loss and self.save_model:
                 best_loss = val_loss
-                file_operations.save_torch(
-                    self.best_save_path,
-                    self.model.state_dict(),
-                    self.optimizer.state_dict(),
-                )
+                self._save_checkpoint(current_epoch)
 
         if self.save_model:
-            file_operations.save_torch(
-                self.save_path, self.model.state_dict(), self.optimizer.state_dict()
-            )
+            self._save_checkpoint(num_epochs - 1)
 
     def _fit_epoch(self) -> float:
         self.model.train()
@@ -130,6 +128,15 @@ class Trainer:
                 val_loss += loss.item()
 
         return val_loss / len(self.test_loader)
+
+    def _save_checkpoint(self, epoch: int):
+        file_operations.save_torch(
+            self.best_save_path,
+            self.model.state_dict(),
+            self.optimizer.state_dict(),
+            self.scaler.state_dict(),
+            epoch,
+        )
 
 
 # probs = torch.softmax(outputs, dim=1)  # probabilities

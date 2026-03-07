@@ -8,12 +8,12 @@ preprocessing_config:
 
 train_config:
   train: true
-  resume_training: true
+  resume_training: false
   resume_from: "trained_models/best_model_2.pth"
-  batch_size: 8
-  num_epochs: 50
+  batch_size: 4
+  num_epochs: 100
   learning_rate: 0.0001
-  weighted_loss: false
+  weighted_loss: true
   save_model: true
   model_name: "model.pth"
 

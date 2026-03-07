@@ -57,7 +57,7 @@ def train(config: Config):
 
     model = UNet3D(in_channels=3, num_classes=4)
     optimizer = optim.Adam(model.parameters(), lr=config.train_config.learning_rate)
-    criterion = WeightedDiceFocalLoss()
+    criterion = WeightedDiceFocalLoss(config.train_config.weighted_loss)
 
     if config.train_config.resume_training:
         model_state, optimizer_state = file_operations.load_torch(

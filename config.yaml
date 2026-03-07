@@ -1,5 +1,6 @@
 environment: "development"
 random_seed: 42
+loaders_workers: 2
 
 preprocessing_config:
   preprocess: false

@@ -45,6 +45,13 @@ class Trainer:
 
         self.device_type = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(self.device_type)
+
+        self.model.to(self.device)
+        self.criterion.to(self.device)
+        for state in self.optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.to(self.device)
         self.scaler = amp.GradScaler(self.device_type)  # type: ignore
 
     def fit(self, num_epochs: int):
@@ -54,11 +61,9 @@ class Trainer:
         best_loss = float("inf")
 
         epoch_bar = tqdm(
-            range(self.start_epoch, num_epochs), desc="Training Epochs", unit="epoch"
+            range(self.start_epoch, num_epochs), desc="Training", unit="epoch"
         )
 
-        self.model.to(self.device)
-        self.criterion.to(self.device)
         for current_epoch in epoch_bar:
             time_start = time.time()
 

@@ -56,6 +56,7 @@ class Config:
 
         # Global
         self.random_seed = config_dict.get("random_seed", 42)
+        self.loader_workers = config_dict.get("loader_workers", 4)
 
         # Nested configs
         self.preprocessing_config = PreprocessingConfig(
@@ -75,6 +76,7 @@ class Config:
             f"Config(\n"
             f"  environment={self.environment.value},\n"
             f"  random_seed={self.random_seed},\n"
+            f"  loader_workers={self.loader_workers},\n"
             f"  preprocessing_config={self.preprocessing_config},\n"
             f"  train_config={self.train_config},\n"
             f"  validation_config={self.validation_config},\n"

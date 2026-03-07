@@ -231,9 +231,9 @@ def main():
         preprocess(config)
 
     if config.train_config.train:
-        log.info("CUDA available:", torch.cuda.is_available())
-        log.info("torch.version.cuda:", torch.version.cuda)  # type: ignore
-        log.info("compiled archs:", torch.cuda.get_arch_list())
+        log.info(f"CUDA available: {torch.cuda.is_available()}")
+        log.info(f"torch.version.cuda: {torch.version.cuda}")  # type: ignore
+        log.info(f"compiled archs: {torch.cuda.get_arch_list()}")
 
         log.info("Starting training...")
         train(config)

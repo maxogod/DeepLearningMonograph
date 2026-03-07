@@ -1,6 +1,6 @@
 environment: "development"
 random_seed: 42
-loader_workers: 2
+loader_workers: 4
 
 preprocessing_config:
   preprocess: false
@@ -18,7 +18,7 @@ train_config:
   model_name: "model.pth"
 
 validation_config:
-  model_path: "trained_models/best_model_3.pth"
+  model_path: "trained_models/best_model_weighted.pth"
   evaluate: false
   predict: true
 

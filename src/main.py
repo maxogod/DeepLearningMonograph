@@ -3,7 +3,7 @@ from os import path
 import sys
 import numpy as np
 import torch
-from torch import optim
+from torch import optim, amp
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import DataLoader
@@ -58,16 +58,27 @@ def train(config: Config):
     model = UNet3D(in_channels=3, num_classes=4)
     optimizer = optim.Adam(model.parameters(), lr=config.train_config.learning_rate)
     criterion = WeightedDiceFocalLoss(config.train_config.weighted_loss)
+    scaler = amp.GradScaler("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore
 
+    start_epoch = 0
     if config.train_config.resume_training:
-        model_state, optimizer_state = file_operations.load_torch(
+        model_state, optimizer_state, scaler_state, epoch = file_operations.load_torch(
             config.train_config.resume_from
         )
         model.load_state_dict(model_state)
         optimizer.load_state_dict(optimizer_state)
+        scaler.load_state_dict(scaler_state)
+        start_epoch = epoch
 
     trainer = Trainer(
-        config, model, optimizer, criterion, train=train_loader, test=test_loader
+        config,
+        model,
+        optimizer,
+        criterion,
+        scaler,
+        train=train_loader,
+        test=test_loader,
+        start_epoch=start_epoch,
     )
     trainer.fit(num_epochs=config.train_config.num_epochs)
 
@@ -81,7 +92,7 @@ def evaluate(config: Config) -> tuple[float, float]:
         num_workers=config.loader_workers,
     )
 
-    model_state_dict, _ = file_operations.load_torch(
+    model_state_dict, _, _, _ = file_operations.load_torch(
         config.validation_config.model_path
     )
     model = UNet3D(in_channels=3, num_classes=4)
@@ -95,7 +106,7 @@ def predict(config: Config, rmi_folder: str):
     log = logger.get_logger()
 
     # Load model
-    model_state_dict, _ = file_operations.load_torch(
+    model_state_dict, _, _, _ = file_operations.load_torch(
         config.validation_config.model_path
     )
     model = UNet3D(in_channels=3, num_classes=4)

@@ -20,6 +20,7 @@ class Trainer:
         model: nn.Module,
         optimizer: optim.Optimizer,
         criterion: nn.Module,
+        scaler: amp.GradScaler,
         train: DataLoader,
         test: DataLoader | None = None,
         start_epoch: int = 0,
@@ -28,7 +29,8 @@ class Trainer:
         if config.train_config.save_model:
             file_operations.mkdir(config.file_paths.model_save_path)
             self.save_path = path.join(
-                config.file_paths.model_save_path, config.train_config.model_name
+                config.file_paths.model_save_path,
+                config.train_config.model_name,
             )
             self.best_save_path = path.join(
                 config.file_paths.model_save_path,
@@ -38,6 +40,7 @@ class Trainer:
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scaler = scaler
 
         self.start_epoch = start_epoch
         self.train_loader = train
@@ -82,10 +85,10 @@ class Trainer:
 
             if val_loss is not None and val_loss < best_loss and self.save_model:
                 best_loss = val_loss
-                self._save_checkpoint(current_epoch)
+                self._save_checkpoint(self.best_save_path, current_epoch)
 
         if self.save_model:
-            self._save_checkpoint(num_epochs - 1)
+            self._save_checkpoint(self.save_path, num_epochs - 1)
 
     def _fit_epoch(self) -> float:
         self.model.train()
@@ -134,9 +137,9 @@ class Trainer:
 
         return val_loss / len(self.test_loader)
 
-    def _save_checkpoint(self, epoch: int):
+    def _save_checkpoint(self, path: str, epoch: int):
         file_operations.save_torch(
-            self.best_save_path,
+            path,
             self.model.state_dict(),
             self.optimizer.state_dict(),
             self.scaler.state_dict(),

@@ -7,13 +7,14 @@ from torch import nn
 import torch
 from src.utils import file_operations
 from src.utils.consts import FLAIR_SUFFIX, SEG_SUFFIX, T1CE_SUFFIX, T2_SUFFIX
+from src.utils.device import get_device
 
 
 class Predictor:
     def __init__(self, model: nn.Module) -> None:
         self.model = model
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = get_device()
         self.model.to(self.device)
 
     def predict(self, imgs: torch.Tensor) -> torch.Tensor:

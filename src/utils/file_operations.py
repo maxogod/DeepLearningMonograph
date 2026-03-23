@@ -4,6 +4,7 @@ from nibabel.loadsave import load
 from nibabel.nifti1 import Nifti1Image
 import numpy as np
 import torch
+from src.utils.device import get_device
 
 MODEL_STATE_DICT = "model_state_dict"
 OPTIMIZER_STATE_DICT = "optimizer_state_dict"
@@ -61,7 +62,7 @@ def save_torch(
 def load_torch(
     file_path: str,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], int]:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device()
     try:
         saved_dict = torch.load(file_path, map_location=device, weights_only=True)
     except TypeError:

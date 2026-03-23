@@ -7,6 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from monai.metrics.meandice import DiceMetric
 from monai.metrics.meaniou import MeanIoU
+from src.utils.device import get_device
 
 
 class Evaluator:
@@ -23,13 +24,13 @@ class Evaluator:
         )
         self.dice_metric = DiceMetric(include_background=True, reduction="mean")
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = get_device()
         self.model.to(self.device)
         self.model.eval()
 
     def _forward(self, imgs: torch.Tensor) -> torch.Tensor:
         use_amp = self.device.type == "cuda"
-        with autocast(device_type="cuda", enabled=use_amp):
+        with autocast(device_type=self.device.type, enabled=use_amp):
             return self.model(imgs)
 
     def validate_model(self) -> Tuple[float, float]:

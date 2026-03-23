@@ -7,6 +7,7 @@ from torch.amp.autocast_mode import autocast
 from torch.utils.data import DataLoader
 from src.config.config import Config
 from src.utils import file_operations
+from src.utils.device import get_device_type
 from src.utils.logger import get_logger
 
 
@@ -20,7 +21,7 @@ class Trainer:
         model: nn.Module,
         optimizer: optim.Optimizer,
         criterion: nn.Module,
-        scaler: amp.GradScaler,
+        scaler: amp.GradScaler,  # type: ignore
         train: DataLoader,
         test: DataLoader | None = None,
         start_epoch: int = 0,
@@ -46,7 +47,7 @@ class Trainer:
         self.train_loader = train
         self.test_loader = test
 
-        self.device_type = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device_type = get_device_type()
         self.device = torch.device(self.device_type)
 
         self.model.to(self.device)

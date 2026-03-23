@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from src.utils.device import get_device
 
 
 class DoubleConv(nn.Module):
@@ -109,7 +110,7 @@ if __name__ == "__main__":
     from torchinfo import summary
 
     model = UNet3D(3, 4)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device()
 
     model = UNet3D(in_channels=3, num_classes=4).to(device)
 

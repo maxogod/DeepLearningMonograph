@@ -4,6 +4,7 @@ import torch
 from torch import optim, amp
 from torch.utils.data import DataLoader
 from src.utils import file_operations
+from src.utils.device import get_device_type
 from src.utils.consts import (
     PREPROC_TEST,
     PREPROC_TRAIN,
@@ -51,7 +52,7 @@ def train(config: Config):
     model = UNet3D(in_channels=3, num_classes=4)
     optimizer = optim.Adam(model.parameters(), lr=config.train_config.learning_rate)
     criterion = WeightedDiceFocalLoss(config.train_config.weighted_loss)
-    scaler = amp.GradScaler("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore
+    scaler = amp.GradScaler(get_device_type())  # type: ignore
 
     start_epoch = 0
     if config.train_config.resume_training:

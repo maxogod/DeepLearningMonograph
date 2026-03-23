@@ -3,6 +3,7 @@ import sys
 import torch
 from torch import optim, amp
 from torch.utils.data import DataLoader
+from src.preprocessing.class_imbalance import measure_class_inbalance
 from src.utils import file_operations
 from src.utils.device import get_device_type
 from src.utils.consts import (
@@ -61,6 +62,9 @@ def train(config: Config):
         )
         model.load_state_dict(model_state)
         optimizer.load_state_dict(optimizer_state)
+        for param_group in optimizer.param_groups:
+            param_group["lr"] = config.train_config.learning_rate
+
         scaler.load_state_dict(scaler_state)
         start_epoch = epoch
 
@@ -124,6 +128,14 @@ def main():
     logger.setup_logging(config.environment)
     log = logger.get_logger()
     torch.manual_seed(config.random_seed)
+
+    if config.preprocessing_config.print_class_imbalance:
+        preproc_folder = (
+            PREPROC_TRAIN
+            if len(sys.argv) > 1 and sys.argv[1] == "train"
+            else PREPROC_TEST
+        )
+        measure_class_inbalance(config.file_paths.preproc_data + preproc_folder)
 
     if config.preprocessing_config.preprocess:
         preprocess(config)

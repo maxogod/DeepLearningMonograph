@@ -1,25 +1,26 @@
 environment: "development"
 random_seed: 42
-loader_workers: 4
+loader_workers: 2
 
 preprocessing_config:
+    print_class_imbalance: false
     preprocess: false
     split_ratio: 0.8
 
 train_config:
-    train: false
-    resume_training: false
-    resume_from: "trained_models/best_model_2.pth"
+    train: true
+    resume_training: true
+    resume_from: "trained_models/best_model_weighted.pth"
     batch_size: 8
-    num_epochs: 100
-    learning_rate: 0.0001
+    num_epochs: 50
+    learning_rate: 0.00001
     weighted_loss: true
     save_model: true
-    model_name: "model.pth"
+    model_name: "new_model.pth"
 
 validation_config:
     model_path: "trained_models/best_model_weighted.pth"
-    evaluate: true
+    evaluate: false
     predict: false
     batch_size: 1
 

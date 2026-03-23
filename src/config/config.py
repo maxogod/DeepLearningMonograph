@@ -12,6 +12,7 @@ class Environment(Enum):
 
 @dataclass
 class PreprocessingConfig:
+    print_class_imbalance: bool
     preprocess: bool
     split_ratio: float
 

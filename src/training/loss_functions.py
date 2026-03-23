@@ -12,7 +12,7 @@ class WeightedDiceFocalLoss(torch.nn.Module):
             0.25,
         ]  # TODO: fine tune weights based on class imbalance
         if weighted:
-            weights = [0.05, 0.3, 0.3, 0.35]
+            weights = [0.02, 0.40, 0.23, 0.35]
         self.class_weights = torch.tensor(
             weights,
             dtype=torch.float32,

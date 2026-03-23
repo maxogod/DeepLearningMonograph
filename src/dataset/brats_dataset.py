@@ -10,9 +10,11 @@ logger = get_logger()
 
 
 class BraTSDataset(Dataset):
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, max_cached_files: int = 999):
         self.volume_files = sorted(glob(data_path + "*" + VOLUME_NPY_SUFFIX))
         self.seg_files = sorted(glob(data_path + "*" + SEG_NPY_SUFFIX))
+        self.max_cached_files = min(max_cached_files, len(self.volume_files))
+        self.cache = {}
 
         if len(self.volume_files) != len(self.seg_files):
             raise ValueError(
@@ -26,11 +28,17 @@ class BraTSDataset(Dataset):
         return len(self.volume_files)
 
     def __getitem__(self, idx):
+        if idx in self.cache:
+            return self.cache[idx]
+
         vol = file_operations.load_npy(self.volume_files[idx])  # [H, W, D, 3]
         seg = file_operations.load_npy(self.seg_files[idx])  # [H, W, D, 4]
 
         x = torch.from_numpy(vol).permute(3, 2, 0, 1).float()  # [3, D, H, W]
         y = torch.from_numpy(seg).permute(3, 2, 0, 1).float()  # [4, D, H, W]
+
+        if len(self.cache) < self.max_cached_files:
+            self.cache[idx] = (x, y)
 
         return x, y
 

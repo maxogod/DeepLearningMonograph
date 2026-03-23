@@ -2,6 +2,7 @@ from glob import glob
 from torch.utils.data import Dataset
 import torch
 
+from src.config.config import Config
 from src.utils import file_operations
 from src.utils.consts import SEG_NPY_SUFFIX, VOLUME_NPY_SUFFIX
 from src.utils.logger import get_logger
@@ -10,10 +11,10 @@ logger = get_logger()
 
 
 class BraTSDataset(Dataset):
-    def __init__(self, data_path: str, max_cached_files: int = 999):
+    def __init__(self, data_path: str, config: Config):
         self.volume_files = sorted(glob(data_path + "*" + VOLUME_NPY_SUFFIX))
         self.seg_files = sorted(glob(data_path + "*" + SEG_NPY_SUFFIX))
-        self.max_cached_files = min(max_cached_files, len(self.volume_files))
+        self.max_cached_files = min(config.max_files_cached, len(self.volume_files))
         self.cache = {}
 
         if len(self.volume_files) != len(self.seg_files):

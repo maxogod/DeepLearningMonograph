@@ -60,6 +60,7 @@ class Config:
         # Global
         self.random_seed = config_dict.get("random_seed", 42)
         self.loader_workers = config_dict.get("loader_workers", 4)
+        self.max_files_cached = config_dict.get("max_files_cached", 999)
 
         # Nested configs
         self.preprocessing_config = PreprocessingConfig(
@@ -80,6 +81,7 @@ class Config:
             f"  environment={self.environment.value},\n"
             f"  random_seed={self.random_seed},\n"
             f"  loader_workers={self.loader_workers},\n"
+            f"  max_files_cached={self.max_files_cached},\n"
             f"  preprocessing_config={self.preprocessing_config},\n"
             f"  train_config={self.train_config},\n"
             f"  validation_config={self.validation_config},\n"

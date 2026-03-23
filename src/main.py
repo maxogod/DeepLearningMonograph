@@ -33,9 +33,11 @@ def preprocess(config: Config):
 
 def train(config: Config):
     train_dataset = BraTSDataset(
-        path.join(config.file_paths.preproc_data, PREPROC_TRAIN)
+        path.join(config.file_paths.preproc_data, PREPROC_TRAIN), config=config
     )
-    test_dataset = BraTSDataset(path.join(config.file_paths.preproc_data, PREPROC_TEST))
+    test_dataset = BraTSDataset(
+        path.join(config.file_paths.preproc_data, PREPROC_TEST), config=config
+    )
 
     train_loader = DataLoader(
         train_dataset,
@@ -82,7 +84,9 @@ def train(config: Config):
 
 
 def evaluate(config: Config) -> tuple[float, float]:
-    test_dataset = BraTSDataset(path.join(config.file_paths.preproc_data, PREPROC_TEST))
+    test_dataset = BraTSDataset(
+        path.join(config.file_paths.preproc_data, PREPROC_TEST), config=config
+    )
     test_loader = DataLoader(
         test_dataset,
         batch_size=config.validation_config.batch_size,

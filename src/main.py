@@ -1,6 +1,7 @@
 from os import path
 import sys
 import torch
+from torch import optim, amp
 from torch.utils.data import DataLoader
 from src.utils import file_operations
 from src.utils.consts import (
@@ -38,20 +39,39 @@ def train(config: Config):
         train_dataset,
         batch_size=config.train_config.batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=config.loader_workers,
     )
     test_loader = DataLoader(
         test_dataset,
         batch_size=config.train_config.batch_size,
         shuffle=False,
-        num_workers=4,
+        num_workers=config.loader_workers,
     )
 
     model = UNet3D(in_channels=3, num_classes=4)
-    criterion = WeightedDiceFocalLoss()
+    optimizer = optim.Adam(model.parameters(), lr=config.train_config.learning_rate)
+    criterion = WeightedDiceFocalLoss(config.train_config.weighted_loss)
+    scaler = amp.GradScaler("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore
+
+    start_epoch = 0
+    if config.train_config.resume_training:
+        model_state, optimizer_state, scaler_state, epoch = file_operations.load_torch(
+            config.train_config.resume_from
+        )
+        model.load_state_dict(model_state)
+        optimizer.load_state_dict(optimizer_state)
+        scaler.load_state_dict(scaler_state)
+        start_epoch = epoch
 
     trainer = Trainer(
-        config, model, criterion, 1e-4, train=train_loader, test=test_loader
+        config,
+        model,
+        optimizer,
+        criterion,
+        scaler,
+        train=train_loader,
+        test=test_loader,
+        start_epoch=start_epoch,
     )
     trainer.fit(num_epochs=config.train_config.num_epochs)
 
@@ -62,10 +82,10 @@ def evaluate(config: Config) -> tuple[float, float]:
         test_dataset,
         batch_size=config.train_config.batch_size,
         shuffle=False,
-        num_workers=4,
+        num_workers=config.loader_workers,
     )
 
-    model_state_dict, _ = file_operations.load_torch(
+    model_state_dict, _, _, _ = file_operations.load_torch(
         config.validation_config.model_path
     )
     model = UNet3D(in_channels=3, num_classes=4)
@@ -79,7 +99,7 @@ def predict(config: Config, rmi_folder: str):
     log = logger.get_logger()
 
     # Load model
-    model_state_dict, _ = file_operations.load_torch(
+    model_state_dict, _, _, _ = file_operations.load_torch(
         config.validation_config.model_path
     )
     model = UNet3D(in_channels=3, num_classes=4)
@@ -108,9 +128,9 @@ def main():
         preprocess(config)
 
     if config.train_config.train:
-        log.info("CUDA available:", torch.cuda.is_available())
-        log.info("torch.version.cuda:", torch.version.cuda)  # type: ignore
-        log.info("compiled archs:", torch.cuda.get_arch_list())
+        log.info(f"CUDA available: {torch.cuda.is_available()}")
+        log.info(f"torch.version.cuda: {torch.version.cuda}")  # type: ignore
+        log.info(f"compiled archs: {torch.cuda.get_arch_list()}")
 
         log.info("Starting training...")
         train(config)

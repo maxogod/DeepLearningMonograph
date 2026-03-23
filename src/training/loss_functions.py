@@ -3,10 +3,18 @@ from monai.losses.dice import DiceFocalLoss
 
 
 class WeightedDiceFocalLoss(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, weighted: bool):
         super().__init__()
+        weights = [
+            0.25,
+            0.25,
+            0.25,
+            0.25,
+        ]  # TODO: fine tune weights based on class imbalance
+        if weighted:
+            weights = [0.05, 0.3, 0.3, 0.35]
         self.class_weights = torch.tensor(
-            [0.25, 0.25, 0.25, 0.25],  # eval others like [0.05, 0.3, 0.3, 0.35]
+            weights,
             dtype=torch.float32,
         )
 

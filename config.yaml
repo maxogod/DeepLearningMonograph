@@ -1,5 +1,6 @@
 environment: "development"
 random_seed: 42
+loader_workers: 4
 
 preprocessing_config:
   preprocess: false
@@ -7,15 +8,19 @@ preprocessing_config:
 
 train_config:
   train: false
-  batch_size: 2
+  resume_training: false
+  resume_from: "trained_models/best_model_2.pth"
+  batch_size: 8
   num_epochs: 100
+  learning_rate: 0.0001
+  weighted_loss: true
   save_model: true
   model_name: "model.pth"
 
 validation_config:
-  model_path: "trained_models/best_model_2.pth"
-  evaluate: false
-  predict: true
+  model_path: "trained_models/best_model_weighted.pth"
+  evaluate: true
+  predict: false
 
 file_paths:
   raw_data: "data/raw/training/"

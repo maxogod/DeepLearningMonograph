@@ -18,16 +18,19 @@ class Trainer:
         self,
         config: Config,
         model: nn.Module,
+        optimizer: optim.Optimizer,
         criterion: nn.Module,
-        lr: float,
+        scaler: amp.GradScaler,
         train: DataLoader,
         test: DataLoader | None = None,
+        start_epoch: int = 0,
     ):
         self.save_model = config.train_config.save_model
         if config.train_config.save_model:
             file_operations.mkdir(config.file_paths.model_save_path)
             self.save_path = path.join(
-                config.file_paths.model_save_path, config.train_config.model_name
+                config.file_paths.model_save_path,
+                config.train_config.model_name,
             )
             self.best_save_path = path.join(
                 config.file_paths.model_save_path,
@@ -36,13 +39,22 @@ class Trainer:
 
         self.model = model
         self.criterion = criterion
-        self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
+        self.optimizer = optimizer
+        self.scaler = scaler
 
+        self.start_epoch = start_epoch
         self.train_loader = train
         self.test_loader = test
 
         self.device_type = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(self.device_type)
+
+        self.model.to(self.device)
+        self.criterion.to(self.device)
+        for state in self.optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.to(self.device)
         self.scaler = amp.GradScaler(self.device_type)  # type: ignore
 
     def fit(self, num_epochs: int):
@@ -51,11 +63,11 @@ class Trainer:
         )
         best_loss = float("inf")
 
-        epoch_bar = tqdm(range(num_epochs), desc="Training Epochs", unit="epoch")
+        epoch_bar = tqdm(
+            range(self.start_epoch, num_epochs), desc="Training", unit="epoch"
+        )
 
-        self.model.to(self.device)
-        self.criterion.to(self.device)
-        for _ in epoch_bar:
+        for current_epoch in epoch_bar:
             time_start = time.time()
 
             loss = self._fit_epoch()
@@ -73,16 +85,10 @@ class Trainer:
 
             if val_loss is not None and val_loss < best_loss and self.save_model:
                 best_loss = val_loss
-                file_operations.save_torch(
-                    self.best_save_path,
-                    self.model.state_dict(),
-                    self.optimizer.state_dict(),
-                )
+                self._save_checkpoint(self.best_save_path, current_epoch)
 
         if self.save_model:
-            file_operations.save_torch(
-                self.save_path, self.model.state_dict(), self.optimizer.state_dict()
-            )
+            self._save_checkpoint(self.save_path, num_epochs - 1)
 
     def _fit_epoch(self) -> float:
         self.model.train()
@@ -130,6 +136,15 @@ class Trainer:
                 val_loss += loss.item()
 
         return val_loss / len(self.test_loader)
+
+    def _save_checkpoint(self, path: str, epoch: int):
+        file_operations.save_torch(
+            path,
+            self.model.state_dict(),
+            self.optimizer.state_dict(),
+            self.scaler.state_dict(),
+            epoch,
+        )
 
 
 # probs = torch.softmax(outputs, dim=1)  # probabilities

@@ -80,7 +80,7 @@ def evaluate(config: Config) -> tuple[float, float]:
     test_dataset = BraTSDataset(path.join(config.file_paths.preproc_data, PREPROC_TEST))
     test_loader = DataLoader(
         test_dataset,
-        batch_size=config.train_config.batch_size,
+        batch_size=config.validation_config.batch_size,
         shuffle=False,
         num_workers=config.loader_workers,
     )

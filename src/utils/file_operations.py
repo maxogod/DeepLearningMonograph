@@ -62,7 +62,10 @@ def load_torch(
     file_path: str,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], int]:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    saved_dict = torch.load(file_path, map_location=device)
+    try:
+        saved_dict = torch.load(file_path, map_location=device, weights_only=True)
+    except TypeError:
+        saved_dict = torch.load(file_path, map_location=device)
     return (
         saved_dict[MODEL_STATE_DICT],
         saved_dict[OPTIMIZER_STATE_DICT],

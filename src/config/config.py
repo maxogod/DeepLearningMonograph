@@ -34,6 +34,7 @@ class ValidationConfig:
     model_path: str
     evaluate: bool
     predict: bool
+    batch_size: int = 1
 
 
 @dataclass

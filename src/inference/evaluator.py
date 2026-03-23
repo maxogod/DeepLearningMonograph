@@ -1,6 +1,7 @@
 from typing import Tuple
 import torch
 import torch.nn.functional as F
+from torch.amp.autocast_mode import autocast
 from tqdm import tqdm
 from torch import nn
 from torch.utils.data import DataLoader
@@ -24,17 +25,36 @@ class Evaluator:
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
+        self.model.eval()
+
+    def _forward(self, imgs: torch.Tensor) -> torch.Tensor:
+        use_amp = self.device.type == "cuda"
+        with autocast(device_type="cuda", enabled=use_amp):
+            return self.model(imgs)
 
     def validate_model(self) -> Tuple[float, float]:
         self.iou_metric.reset()
         self.dice_metric.reset()
+
+        if self.device.type == "cuda":
+            torch.cuda.empty_cache()
 
         with torch.no_grad():
             for imgs, masks in tqdm(self.test_loader):
                 imgs = imgs.to(self.device)
                 masks = masks.to(self.device)
 
-                outputs = self.model(imgs)
+                try:
+                    outputs = self._forward(imgs)
+                except torch.OutOfMemoryError:
+                    if self.device.type != "cuda" or imgs.shape[0] == 1:
+                        raise
+                    torch.cuda.empty_cache()
+                    chunked_outputs = []
+                    for idx in range(imgs.shape[0]):
+                        chunked_outputs.append(self._forward(imgs[idx : idx + 1]))
+                    outputs = torch.cat(chunked_outputs, dim=0)
+
                 preds = torch.argmax(torch.softmax(outputs, dim=1), dim=1)
                 targets = torch.argmax(masks, dim=1)
 

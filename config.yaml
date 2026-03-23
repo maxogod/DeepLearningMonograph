@@ -3,26 +3,27 @@ random_seed: 42
 loader_workers: 4
 
 preprocessing_config:
-  preprocess: false
-  split_ratio: 0.8
+    preprocess: false
+    split_ratio: 0.8
 
 train_config:
-  train: false
-  resume_training: false
-  resume_from: "trained_models/best_model_2.pth"
-  batch_size: 8
-  num_epochs: 100
-  learning_rate: 0.0001
-  weighted_loss: true
-  save_model: true
-  model_name: "model.pth"
+    train: false
+    resume_training: false
+    resume_from: "trained_models/best_model_2.pth"
+    batch_size: 8
+    num_epochs: 100
+    learning_rate: 0.0001
+    weighted_loss: true
+    save_model: true
+    model_name: "model.pth"
 
 validation_config:
-  model_path: "trained_models/best_model_weighted.pth"
-  evaluate: true
-  predict: false
+    model_path: "trained_models/best_model_weighted.pth"
+    evaluate: true
+    predict: false
+    batch_size: 1
 
 file_paths:
-  raw_data: "data/raw/training/"
-  preproc_data: "data/preproc/" # /train and /test
-  model_save_path: "models/"
+    raw_data: "data/raw/training/"
+    preproc_data: "data/preproc/" # /train and /test
+    model_save_path: "models/"

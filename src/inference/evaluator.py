@@ -52,6 +52,12 @@ class Evaluator:
 
         with torch.no_grad():
             for imgs, masks in tqdm(self.test_loader):
+                ncr_voxels = masks[:, 1].sum().item()
+                if (
+                    ncr_voxels < 500
+                ):  # Skip batches with very few NCR voxels to avoid skewing metrics
+                    continue
+
                 imgs = imgs.to(self.device)
                 masks = masks.to(self.device)
 

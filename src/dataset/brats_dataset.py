@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     setup_logging(Environment.DEVELOPMENT)
 
-    dataset = BraTSDataset(data_path="data/preproc/")
+    dataset = BraTSDataset(data_path="data/preproc/", config=Config())
     loader = DataLoader(dataset, batch_size=2, shuffle=True, num_workers=4)
 
     batch = next(iter(loader))

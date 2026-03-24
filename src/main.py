@@ -156,7 +156,7 @@ def main():
         log.info("Starting evaluation...")
         mean_iou, mean_dice = evaluate(config)
         log.info(
-            f"Validation results - Mean IoU: {mean_iou:.4f}, Mean Dice: {mean_dice:.4f}"
+            f"Validation results - Mean IoU: {mean_iou:.2f}, Mean Dice: {mean_dice:.2f}"
         )
 
     if config.validation_config.predict:

@@ -1,7 +1,7 @@
 environment: "development"
 random_seed: 42
 loader_workers: 4
-max_files_cache: 200
+max_files_cache: 1
 
 preprocessing_config:
     print_class_imbalance: false
@@ -11,16 +11,16 @@ preprocessing_config:
 train_config:
     train: true
     resume_training: true
-    resume_from: "trained_models/best_model_weighted.pth"
-    batch_size: 2
-    num_epochs: 200
+    resume_from: "trained_models/best_new_model_2.pth"
+    batch_size: 8
+    num_epochs: 220
     learning_rate: 0.00001
     weighted_loss: true
     save_model: true
     model_name: "new_model.pth"
 
 validation_config:
-    model_path: "trained_models/best_model_weighted.pth"
+    model_path: "trained_models/best_new_model_2.pth"
     evaluate: false
     predict: false
     batch_size: 1

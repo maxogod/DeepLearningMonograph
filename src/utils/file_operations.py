@@ -5,6 +5,9 @@ from nibabel.nifti1 import Nifti1Image
 import numpy as np
 import torch
 from src.utils.device import get_device
+from src.utils.logger import get_logger
+
+log = get_logger()
 
 MODEL_STATE_DICT = "model_state_dict"
 OPTIMIZER_STATE_DICT = "optimizer_state_dict"
@@ -67,6 +70,11 @@ def load_torch(
         saved_dict = torch.load(file_path, map_location=device, weights_only=True)
     except TypeError:
         saved_dict = torch.load(file_path, map_location=device)
+
+    log.debug(
+        f"Loaded checkpoint from {file_path} with epochs: {saved_dict[EPOCH_STATE]}"
+    )
+
     return (
         saved_dict[MODEL_STATE_DICT],
         saved_dict[OPTIMIZER_STATE_DICT],

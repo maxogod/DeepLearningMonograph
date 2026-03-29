@@ -20,6 +20,7 @@ from src.inference.evaluator import Evaluator
 from src.inference.predictor import Predictor
 from src.inference.plotter import InferencePlotter
 from src.dataset.brats_dataset import BraTSDataset
+from src.utils.loss_plotter import plot_loss_history
 
 
 def preprocess(config: Config):
@@ -158,6 +159,23 @@ def main():
         log.info(
             f"Validation results - Mean IoU: {mean_iou:.2f}, Mean Dice: {mean_dice:.2f}"
         )
+
+    if config.validation_config.plot_loss:
+        model_name = path.splitext(path.basename(config.validation_config.model_path))[
+            0
+        ]
+        loss_history_file = path.join(
+            config.train_config.loss_history_path,
+            f"{model_name}_losses.npy",
+        )
+
+        if not path.exists(loss_history_file):
+            log.warning(
+                f"Loss history file not found for model '{model_name}': {loss_history_file}"
+            )
+        else:
+            log.info(f"Plotting loss history from: {loss_history_file}")
+            plot_loss_history(loss_history_file)
 
     if config.validation_config.predict:
         if len(sys.argv) < 2:

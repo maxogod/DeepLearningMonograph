@@ -37,6 +37,7 @@ class ValidationConfig:
     model_path: str
     evaluate: bool
     predict: bool
+    plot_loss: bool
     batch_size: int = 1
 
 

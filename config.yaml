@@ -9,19 +9,20 @@ preprocessing_config:
     split_ratio: 0.8
 
 train_config:
-    train: false
-    resume_training: true
-    resume_from: "trained_models/best_new_model_2.pth"
+    train: true
+    resume_training: false
+    resume_from: "trained_models/annealing.pth"
     batch_size: 8
-    num_epochs: 220
-    learning_rate: 0.00001
+    num_epochs: 100
+    learning_rate: 0.0001
+    eta_min_lr: 0.00001
     weighted_loss: true
     save_model: true
-    model_name: "new_model.pth"
+    model_name: "annealing.pth"
 
 validation_config:
     model_path: "trained_models/new_model.pth"
-    evaluate: true
+    evaluate: false
     predict: false
     batch_size: 1
 

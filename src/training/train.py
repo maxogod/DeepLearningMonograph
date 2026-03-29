@@ -41,6 +41,11 @@ class Trainer:
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scheduler = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=config.train_config.num_epochs - start_epoch,
+            eta_min=config.train_config.eta_min_lr,
+        )
         self.scaler = scaler
 
         self.start_epoch = start_epoch
@@ -73,6 +78,7 @@ class Trainer:
 
             loss = self._fit_epoch()
             val_loss = self._validate_epoch()
+            self.scheduler.step()
 
             time_end = time.time()
 
@@ -81,6 +87,7 @@ class Trainer:
                     "train_loss": f"{loss:.4f}",
                     "val_loss": f"{(val_loss or 0.0):.4f}",
                     "time": f"{time_end - time_start:.2f}s",
+                    "lr": f"{self.scheduler.get_last_lr()[0]:.2e}",
                 }
             )
 
@@ -98,6 +105,10 @@ class Trainer:
 
         train_loss = 0.0
         for imgs, masks in epoch_bar:
+            ncr_voxels = masks[:, 1].sum().item()
+            if ncr_voxels < 500:
+                continue
+
             imgs = imgs.to(self.device).float()
             masks = masks.to(self.device).float()
 
@@ -146,33 +157,3 @@ class Trainer:
             self.scaler.state_dict(),
             epoch,
         )
-
-
-# probs = torch.softmax(outputs, dim=1)  # probabilities
-# preds = torch.argmax(probs, dim=1)
-# correct = (preds == masks).float()
-# accuracy = correct.sum() / correct.numel()
-
-# def compute_iou(preds, masks, num_classes):
-#     ious = []
-
-#     for cls in range(num_classes):
-#         pred_cls = (preds == cls)
-#         mask_cls = (masks == cls)
-
-#         intersection = (pred_cls & mask_cls).sum().float()
-#         union = (pred_cls | mask_cls).sum().float()
-
-#         if union == 0:
-#             continue
-
-#         ious.append(intersection / union)
-
-#     return torch.mean(torch.stack(ious))
-# iou = compute_iou(preds, masks, num_classes=4)
-
-# OR install torchmetrics
-# from torchmetrics.classification import MulticlassAccuracy
-# from torchmetrics.classification import MulticlassJaccardIndex
-# accuracy_metric = MulticlassAccuracy(num_classes=4)
-# iou_metric = MulticlassJaccardIndex(num_classes=4)

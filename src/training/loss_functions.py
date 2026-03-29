@@ -5,22 +5,20 @@ from monai.losses.dice import DiceFocalLoss
 class WeightedDiceFocalLoss(torch.nn.Module):
     def __init__(self, weighted: bool):
         super().__init__()
-        weights = [
-            0.25,
-            0.25,
-            0.25,
-            0.25,
-        ]  # TODO: fine tune weights based on class imbalance
+        weights = [0.25, 0.25, 0.25, 0.25]
         if weighted:
-            # weights = [0.02, 0.40, 0.23, 0.35] # based on class imbalance analysis
-            weights = [0.02, 0.65, 0.15, 0.18]  # more aggressive weighting to boost NCR
+            weights = [0.02, 0.50, 0.25, 0.23]  # [0.02, 0.65, 0.15, 0.18]
+
+        # Only foreground classes
+        foreground_weights = weights[1:]  # [NCR, ED, ET]
+
         self.class_weights = torch.tensor(
-            weights,
+            foreground_weights,
             dtype=torch.float32,
         )
 
         self.loss = DiceFocalLoss(
-            include_background=True,
+            include_background=False,
             to_onehot_y=False,
             softmax=True,
             weight=self.class_weights,

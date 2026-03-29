@@ -25,6 +25,7 @@ class TrainConfig:
     batch_size: int
     num_epochs: int
     learning_rate: float
+    eta_min_lr: float
     weighted_loss: bool
     save_model: bool
     model_name: str

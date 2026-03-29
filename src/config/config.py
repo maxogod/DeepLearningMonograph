@@ -29,6 +29,7 @@ class TrainConfig:
     weighted_loss: bool
     save_model: bool
     model_name: str
+    loss_history_path: str
 
 
 @dataclass

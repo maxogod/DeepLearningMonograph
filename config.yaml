@@ -19,6 +19,7 @@ train_config:
     weighted_loss: true
     save_model: true
     model_name: "annealing.pth"
+    loss_history_path: "models/loss_history/"
 
 validation_config:
     model_path: "trained_models/new_model.pth"

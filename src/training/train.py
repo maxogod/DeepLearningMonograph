@@ -3,6 +3,7 @@ from tqdm import tqdm
 import time
 from torch import amp, nn, optim
 import torch
+import numpy as np
 from torch.amp.autocast_mode import autocast
 from torch.utils.data import DataLoader
 from src.config.config import Config
@@ -37,6 +38,8 @@ class Trainer:
                 config.file_paths.model_save_path,
                 f"best_{config.train_config.model_name}",
             )
+            self.loss_history_path = config.train_config.loss_history_path
+            file_operations.mkdir(self.loss_history_path)
 
         self.model = model
         self.criterion = criterion
@@ -68,6 +71,9 @@ class Trainer:
             f"Starting training for {num_epochs} epochs on device: {self.device_type}"
         )
         best_loss = float("inf")
+        epoch_history: list[int] = []
+        train_loss_history: list[float] = []
+        val_loss_history: list[float] = []
 
         epoch_bar = tqdm(
             range(self.start_epoch, num_epochs), desc="Training", unit="epoch"
@@ -79,6 +85,11 @@ class Trainer:
             loss = self._fit_epoch()
             val_loss = self._validate_epoch()
             self.scheduler.step()
+
+            # Keep aligned arrays for plotting and checkpoint-side persistence.
+            epoch_history.append(current_epoch)
+            train_loss_history.append(loss)
+            val_loss_history.append(np.nan if val_loss is None else val_loss)
 
             time_end = time.time()
 
@@ -93,10 +104,22 @@ class Trainer:
 
             if val_loss is not None and val_loss < best_loss and self.save_model:
                 best_loss = val_loss
-                self._save_checkpoint(self.best_save_path, current_epoch)
+                self._save_checkpoint(
+                    self.best_save_path,
+                    current_epoch,
+                    epoch_history,
+                    train_loss_history,
+                    val_loss_history,
+                )
 
         if self.save_model:
-            self._save_checkpoint(self.save_path, num_epochs - 1)
+            self._save_checkpoint(
+                self.save_path,
+                num_epochs - 1,
+                epoch_history,
+                train_loss_history,
+                val_loss_history,
+            )
 
     def _fit_epoch(self) -> float:
         self.model.train()
@@ -149,11 +172,31 @@ class Trainer:
 
         return val_loss / len(self.test_loader)
 
-    def _save_checkpoint(self, path: str, epoch: int):
+    def _save_checkpoint(
+        self,
+        checkpoint_path: str,
+        epoch: int,
+        epoch_history: list[int],
+        train_loss_history: list[float],
+        val_loss_history: list[float],
+    ) -> None:
         file_operations.save_torch(
-            path,
+            checkpoint_path,
             self.model.state_dict(),
             self.optimizer.state_dict(),
             self.scaler.state_dict(),
             epoch,
         )
+
+        history_rows = [
+            [float(ep), train_l, val_l]
+            for ep, train_l, val_l in zip(
+                epoch_history,
+                train_loss_history,
+                val_loss_history,
+            )
+        ]
+        loss_history = np.array(history_rows, dtype=np.float32)
+        checkpoint_name = path.splitext(path.basename(checkpoint_path))[0]
+        loss_path = path.join(self.loss_history_path, f"{checkpoint_name}_losses.npy")
+        file_operations.save_npy(loss_path, loss_history)

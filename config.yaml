@@ -1,6 +1,6 @@
 environment: "development"
 random_seed: 42
-loader_workers: 4
+loader_workers: 2
 max_files_cache: 1
 
 preprocessing_config:

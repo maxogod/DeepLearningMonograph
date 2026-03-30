@@ -24,10 +24,13 @@ class Evaluator:
         self.iou_metric = MeanIoU(
             include_background=False, reduction="mean", get_not_nans=False
         )
+        self.iou_per_class = MeanIoU(
+            include_background=False, reduction="mean_batch", get_not_nans=True
+        )
+
         self.dice_metric = DiceMetric(
             include_background=False, reduction="mean", get_not_nans=True
         )
-
         self.dice_per_class = DiceMetric(
             include_background=False, reduction="mean_batch", get_not_nans=True
         )
@@ -40,6 +43,7 @@ class Evaluator:
 
     def validate_model(self) -> Tuple[float, float]:
         self.iou_metric.reset()
+        self.iou_per_class.reset()
         self.dice_metric.reset()
         self.dice_per_class.reset()
 
@@ -80,12 +84,15 @@ class Evaluator:
                 self.dice_metric(preds, targets)
                 self.dice_per_class(preds, targets)
                 self.iou_metric(preds, targets)
+                self.iou_per_class(preds, targets)
 
         mean_iou = self.iou_metric.aggregate().item()  # type: ignore
+        per_class_iou, _ = self.iou_per_class.aggregate()
         mean_dice, not_nans = self.dice_metric.aggregate()  # type: ignore
-        per_class, _ = self.dice_per_class.aggregate()
+        per_class_dice, _ = self.dice_per_class.aggregate()
 
-        log.info(f"Per-class Dice (NCR, ED, ET): {per_class.tolist()}")
+        log.info(f"Per-class IoU (NCR, ED, ET): {per_class_iou.tolist()}")
+        log.info(f"Per-class Dice (NCR, ED, ET): {per_class_dice.tolist()}")
         log.info(f"Not-NaN batches: {not_nans}")
 
         return mean_iou, mean_dice.item()

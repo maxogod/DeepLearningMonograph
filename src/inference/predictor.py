@@ -8,23 +8,30 @@ import torch
 from src.utils import file_operations
 from src.utils.consts import FLAIR_SUFFIX, SEG_SUFFIX, T1CE_SUFFIX, T2_SUFFIX
 from src.utils.device import get_device
+from torch.amp.autocast_mode import autocast
+from src.inference.base_predictor import BasePredictor
 
 
-class Predictor:
+class Predictor(BasePredictor):
     def __init__(self, model: nn.Module) -> None:
         self.model = model
 
         self.device = get_device()
         self.model.to(self.device)
-
-    def predict(self, imgs: torch.Tensor) -> torch.Tensor:
         self.model.eval()
+
+    def predict_single_image(self, imgs: torch.Tensor) -> torch.Tensor:
         imgs = imgs.to(self.device).float()
 
         outputs = self.model(imgs)
         probs = torch.softmax(outputs, dim=1)
         preds = torch.argmax(probs, dim=1)
         return preds
+
+    def predict(self, imgs: torch.Tensor) -> torch.Tensor:
+        use_amp = self.device.type == "cuda"
+        with autocast(device_type=self.device.type, enabled=use_amp):
+            return torch.softmax(self.model(imgs), dim=1)
 
     def prepare_from_rmi_folder(
         self, rmi_folder: str

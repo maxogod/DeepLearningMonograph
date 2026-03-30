@@ -18,6 +18,7 @@ from src.training.loss_functions import WeightedDiceFocalLoss
 from src.training.train import Trainer
 from src.inference.evaluator import Evaluator
 from src.inference.predictor import Predictor
+from src.inference.ensemble_predictor import EnsemblePredictor
 from src.inference.plotter import InferencePlotter
 from src.dataset.brats_dataset import BraTSDataset
 from src.utils.loss_plotter import plot_loss_history
@@ -85,6 +86,8 @@ def train(config: Config):
 
 
 def evaluate(config: Config) -> tuple[float, float]:
+    log = logger.get_logger()
+
     test_dataset = BraTSDataset(
         path.join(config.file_paths.preproc_data, PREPROC_TEST), config=config
     )
@@ -95,13 +98,24 @@ def evaluate(config: Config) -> tuple[float, float]:
         num_workers=config.loader_workers,
     )
 
-    model_state_dict, _, _, _ = file_operations.load_torch(
-        config.validation_config.model_path
-    )
-    model = UNet3D(in_channels=3, num_classes=4)
-    model.load_state_dict(model_state_dict)
+    if config.validation_config.ensemble:
+        log.info(
+            f"Using ensemble of models for evaluation: {config.validation_config.ensemble_models}"
+        )
+        predictor = EnsemblePredictor(config.validation_config.ensemble_models)
+    else:
+        log.info(
+            f"Using single model for evaluation: {config.validation_config.model_path}"
+        )
+        model_state_dict, _, _, _ = file_operations.load_torch(
+            config.validation_config.model_path
+        )
+        model = UNet3D(in_channels=3, num_classes=4)
+        model.load_state_dict(model_state_dict)
+        predictor = Predictor(model)
 
-    evaluator = Evaluator(model, test_loader)
+    evaluator = Evaluator(test_loader, predictor)
+
     return evaluator.validate_model()
 
 
@@ -122,7 +136,7 @@ def predict(config: Config, rmi_folder: str):
     log.info(f"FLAIR:{files['flair']}")
     log.info(f"SEG:  {files['seg']}")
 
-    preds = predictor.predict(x)
+    preds = predictor.predict_single_image(x)
 
     plotter = InferencePlotter()
     plotter.plot_prediction(volume=volume, seg_onehot=seg_onehot, preds=preds)

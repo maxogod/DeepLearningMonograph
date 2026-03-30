@@ -35,6 +35,8 @@ class TrainConfig:
 @dataclass
 class ValidationConfig:
     model_path: str
+    ensemble: bool
+    ensemble_models: list[str]
     evaluate: bool
     predict: bool
     plot_loss: bool

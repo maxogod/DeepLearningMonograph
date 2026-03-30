@@ -1,6 +1,6 @@
 environment: "development"
 random_seed: 42
-loader_workers: 2
+loader_workers: 4
 max_files_cache: 1
 
 preprocessing_config:
@@ -12,8 +12,8 @@ train_config:
     train: true
     resume_training: true
     resume_from: "trained_models/best_annealing.pth"
-    batch_size: 8
-    num_epochs: 150
+    batch_size: 2
+    num_epochs: 200
     learning_rate: 0.00001
     eta_min_lr: 0.000001
     weighted_loss: true
@@ -23,6 +23,12 @@ train_config:
 
 validation_config:
     model_path: "trained_models/best_annealing.pth"
+    ensemble: false
+    ensemble_models: [
+      # "trained_models/best_annealing.pth",
+      "trained_models/best_new_model_2.pth",
+      "trained_models/best_model_weighted.pth"
+    ]
     evaluate: false
     predict: false
     plot_loss: false

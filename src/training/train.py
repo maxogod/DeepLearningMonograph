@@ -217,7 +217,7 @@ class Trainer:
 
         checkpoint_name = path.splitext(path.basename(self.resume_from))[0]
         loss_path = path.join(
-            self.loss_history_path,
+            path.dirname(self.resume_from) + "/loss_history",
             f"{checkpoint_name}_losses.npy",
         )
 

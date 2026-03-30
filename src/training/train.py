@@ -28,6 +28,8 @@ class Trainer:
         start_epoch: int = 0,
     ):
         self.save_model = config.train_config.save_model
+        self.resume_training = config.train_config.resume_training
+        self.resume_from = config.train_config.resume_from
         if config.train_config.save_model:
             file_operations.mkdir(config.file_paths.model_save_path)
             self.save_path = path.join(
@@ -70,10 +72,16 @@ class Trainer:
         logger.info(
             f"Starting training for {num_epochs} epochs on device: {self.device_type}"
         )
+        epoch_history, train_loss_history, val_loss_history = (
+            self._load_existing_loss_history()
+        )
+
         best_loss = float("inf")
-        epoch_history: list[int] = []
-        train_loss_history: list[float] = []
-        val_loss_history: list[float] = []
+        if val_loss_history:
+            finite_val_losses = np.array(val_loss_history, dtype=np.float32)
+            finite_val_losses = finite_val_losses[np.isfinite(finite_val_losses)]
+            if finite_val_losses.size > 0:
+                best_loss = float(finite_val_losses.min())
 
         epoch_bar = tqdm(
             range(self.start_epoch, num_epochs), desc="Training", unit="epoch"
@@ -200,3 +208,45 @@ class Trainer:
         checkpoint_name = path.splitext(path.basename(checkpoint_path))[0]
         loss_path = path.join(self.loss_history_path, f"{checkpoint_name}_losses.npy")
         file_operations.save_npy(loss_path, loss_history)
+
+    def _load_existing_loss_history(
+        self,
+    ) -> tuple[list[int], list[float], list[float]]:
+        if not self.save_model or not self.resume_training or self.start_epoch <= 0:
+            return [], [], []
+
+        checkpoint_name = path.splitext(path.basename(self.resume_from))[0]
+        loss_path = path.join(
+            self.loss_history_path,
+            f"{checkpoint_name}_losses.npy",
+        )
+
+        if not path.exists(loss_path):
+            logger.warning(
+                f"Expected resume loss history not found: {loss_path}. Starting with empty history."
+            )
+            return [], [], []
+
+        history = file_operations.load_npy(loss_path)
+        if history.ndim != 2 or history.shape[1] < 3:
+            logger.warning(
+                f"Invalid loss history format in {loss_path}; starting with empty history."
+            )
+            return [], [], []
+
+        # Keep only epochs already completed before the resume point.
+        history = history[history[:, 0] < float(self.start_epoch)]
+        if history.size == 0:
+            logger.info(
+                f"Found {loss_path}, but no rows before resume epoch {self.start_epoch}."
+            )
+            return [], [], []
+
+        logger.info(
+            f"Loaded {len(history)} previous loss rows from {loss_path} for resumed training."
+        )
+        return (
+            history[:, 0].astype(np.int64).tolist(),
+            history[:, 1].astype(np.float32).tolist(),
+            history[:, 2].astype(np.float32).tolist(),
+        )

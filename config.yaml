@@ -1,6 +1,6 @@
 environment: "development"
 random_seed: 42
-loader_workers: 4
+loader_workers: 2
 max_files_cache: 1
 
 preprocessing_config:
@@ -10,12 +10,12 @@ preprocessing_config:
 
 train_config:
     train: true
-    resume_training: false
-    resume_from: "trained_models/annealing.pth"
-    batch_size: 4
-    num_epochs: 100
-    learning_rate: 0.0001
-    eta_min_lr: 0.00001
+    resume_training: true
+    resume_from: "trained_models/best_annealing.pth"
+    batch_size: 8
+    num_epochs: 150
+    learning_rate: 0.00001
+    eta_min_lr: 0.000001
     weighted_loss: true
     save_model: true
     model_name: "annealing.pth"

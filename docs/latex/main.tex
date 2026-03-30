@@ -1,0 +1,56 @@
+\documentclass[twocolumn]{article}
+\usepackage[spanish]{babel}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{fancyhdr} % For custom headers/footers
+\usepackage{titlesec} % For title formatting
+\usepackage{xcolor}   % For adding colors
+\usepackage{geometry} % For adjusting page layout
+\usepackage{array}    % For table alignment
+\usepackage{float}
+\usepackage{subcaption} % For subfigures
+\usepackage{float} % For [H] specifier
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{minted}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage[font=footnotesize]{caption}
+
+
+% Header
+\pagestyle{fancy}
+\fancyhead[L]{Trabajo Practico}
+\fancyhead[R]{Aprendizaje Profundo - FIUBA}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyfoot[C]{\thepage}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Config for figures positions
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\floatpagefraction}{0.5}
+
+% Page layout adjustments
+\geometry{a4paper, margin=1in}
+
+% Horizontal rule styling
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+% Title font customization
+\titleformat{\section}{\bfseries\small}{\thesection}{1em}{}
+
+\titleformat{\subsection}{\bfseries\small}{\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}{\bfseries\small}{\thesubsubsection}{1em}{}
+
+\begin{document}
+
+\input{cover}
+
+\input{tp}
+
+\end{document}

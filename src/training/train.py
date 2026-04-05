@@ -77,11 +77,6 @@ class Trainer:
         )
 
         best_loss = float("inf")
-        if val_loss_history:
-            finite_val_losses = np.array(val_loss_history, dtype=np.float32)
-            finite_val_losses = finite_val_losses[np.isfinite(finite_val_losses)]
-            if finite_val_losses.size > 0:
-                best_loss = float(finite_val_losses.min())
 
         epoch_bar = tqdm(
             range(self.start_epoch, num_epochs), desc="Training", unit="epoch"

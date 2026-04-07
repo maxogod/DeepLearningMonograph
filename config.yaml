@@ -9,7 +9,7 @@ preprocessing_config:
     split_ratio: 0.8
 
 train_config:
-    train: true
+    train: false
     resume_training: true
     resume_from: "trained_models/best_annealing.pth"
     batch_size: 8
@@ -22,14 +22,14 @@ train_config:
     loss_history_path: "models/loss_history/"
 
 validation_config:
-    model_path: "trained_models/best_annealing_2.pth"
+    model_path: "trained_models/best_annealing_3.pth"
     ensemble: false
     ensemble_models: [
-      # "trained_models/best_annealing.pth",
+      "trained_models/best_annealing_3.pth",
       "trained_models/best_new_model_2.pth",
       "trained_models/best_model_weighted.pth"
     ]
-    evaluate: false
+    evaluate: true
     predict: false
     plot_loss: false
     batch_size: 1

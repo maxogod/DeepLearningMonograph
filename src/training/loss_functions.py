@@ -7,7 +7,7 @@ class WeightedDiceFocalLoss(torch.nn.Module):
         super().__init__()
         weights = [0.25, 0.25, 0.25, 0.25]
         if weighted:
-            weights = [0.02, 0.65, 0.15, 0.18]  # [0.02, 0.50, 0.25, 0.23]
+            weights = [0.02, 0.50, 0.25, 0.23]  # [0.02, 0.65, 0.15, 0.18]
 
         # Only foreground classes
         foreground_weights = weights[1:]  # [NCR, ED, ET]

@@ -13,16 +13,16 @@ train_config:
     resume_training: true
     resume_from: "trained_models/best_annealing.pth"
     batch_size: 8
-    num_epochs: 200
-    learning_rate: 0.00001
-    eta_min_lr: 0.000001
+    num_epochs: 150
+    learning_rate: 0.0001
+    eta_min_lr: 0.00009
     weighted_loss: true
     save_model: true
-    model_name: "annealing.pth"
+    model_name: "annealing_3.pth"
     loss_history_path: "models/loss_history/"
 
 validation_config:
-    model_path: "trained_models/best_annealing.pth"
+    model_path: "trained_models/best_annealing_2.pth"
     ensemble: false
     ensemble_models: [
       # "trained_models/best_annealing.pth",

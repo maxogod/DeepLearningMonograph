@@ -15,6 +15,7 @@ class PreprocessingConfig:
     print_class_imbalance: bool
     preprocess: bool
     split_ratio: float
+    plot_lr_evolution: bool = False
 
 
 @dataclass

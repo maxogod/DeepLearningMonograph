@@ -7,6 +7,7 @@ preprocessing_config:
     print_class_imbalance: false
     preprocess: false
     split_ratio: 0.8
+    plot_lr_evolution: true
 
 train_config:
     train: false
@@ -22,14 +23,15 @@ train_config:
     loss_history_path: "models/loss_history/"
 
 validation_config:
-    model_path: "trained_models/best_annealing_3.pth"
-    ensemble: false
-    ensemble_models: [
-      "trained_models/best_annealing_3.pth",
-      "trained_models/best_new_model_2.pth",
-      "trained_models/best_model_weighted.pth"
-    ]
-    evaluate: true
+    model_path: "trained_models/best_new_model_2.pth"
+    ensemble: true
+    ensemble_models:
+        [
+            "trained_models/best_annealing_3.pth",
+            "trained_models/best_new_model_2.pth",
+            "trained_models/best_model_weighted.pth",
+        ]
+    evaluate: false
     predict: false
     plot_loss: false
     batch_size: 1

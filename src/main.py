@@ -4,6 +4,7 @@ import torch
 from torch import optim, amp
 from torch.utils.data import DataLoader
 from src.preprocessing.class_imbalance import measure_class_inbalance
+from src.preprocessing.lr_evolution import plot_learning_rate_evolution
 from src.utils import file_operations
 from src.utils.device import get_device_type
 from src.utils.consts import (
@@ -158,6 +159,14 @@ def main():
 
     if config.preprocessing_config.preprocess:
         preprocess(config)
+
+    if config.preprocessing_config.plot_lr_evolution:
+        log.info("Plotting cosine annealing learning-rate evolution...")
+        plot_learning_rate_evolution(
+            learning_rate=config.train_config.learning_rate,
+            eta_min_lr=config.train_config.eta_min_lr,
+            num_epochs=config.train_config.num_epochs,
+        )
 
     if config.train_config.train:
         log.info(f"CUDA available: {torch.cuda.is_available()}")

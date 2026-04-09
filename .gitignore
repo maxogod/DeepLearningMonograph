@@ -1,5 +1,7 @@
 data/
 outputs/
+models/
+refs/
 .ipynb_checkpoints/
 .virtual_documents/
 __pycache__/
